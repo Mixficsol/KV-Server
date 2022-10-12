@@ -6,6 +6,7 @@
 using namespace std;
 void echo(int connfd) {
   size_t n;
+  printf("Hello");
   char buf[MAXLINE];
   string key, value;
   rio_t rio;
