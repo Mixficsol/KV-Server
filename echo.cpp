@@ -48,14 +48,12 @@ void echo(int connfd) {
 		}
 	  }
       cout << "key: " << key << ",value: " << value << endl;
-      my_mutex.lock();
       redisReply* reply = (redisReply*)redisCommand(myredis, "SET %s %s", key.c_str(), value.c_str());
-      my_mutex.unlock();
-      cout << "hekl" << endl;
-      cout << reply->str << endl;
-	 // strcpy(buf, a.c_str());
-	 // Rio_writen(connfd, buf, a.size());
-     // freeReplyObject(reply);
+      string a = "OK";
+      cout << a << endl;
+	  strcpy(buf, a.c_str());
+	  Rio_writen(connfd, buf, a.size());
+      freeReplyObject(reply);
 	  // mp[key] = value;
    	}
 	else if (buf[0] == 'g' || buf[0] == 'G') {
@@ -68,20 +66,14 @@ void echo(int connfd) {
 		}
 	  }
       cout << "key: " << key << endl;
-     // cout << "key: " << key << ",value: " << value << endl;
       redisReply* reply1 = (redisReply*)redisCommand(myredis, "GET %s", key.c_str());
       string b;
-      cout << reply1->str;
-      if (!reply1) {
-        strcpy(buf, b.c_str());
-        Rio_writen(connfd, buf, b.size());
-      } else {
-        strcpy(buf, b.c_str());
-        Rio_writen(connfd, buf, b.size());
-      }
+      b = reply1->str;
+      strcpy(buf, b.c_str());
+      Rio_writen(connfd, buf, b.size());
       freeReplyObject(reply1);
 	} else {
-      string a = "nothing\n";
+      string a = "nothing";
       strcpy(buf, a.c_str());
       Rio_writen(connfd, buf, a.size());
 	}
