@@ -2,17 +2,24 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <mutex>
+#include "hiredis/hiredis.h"
 
 using namespace std;
+
+mutex my_mutex;
+map<string,string> mp;
+redisContext* myredis = redisConnect("127.0.0.1",6379);
 void echo(int connfd) {
   size_t n;
-  printf("Hello123456");
   char buf[MAXLINE];
-  string key, value;
+  string key, value, sql;
   rio_t rio;
-  map<string,string> mp;
   Rio_readinitb(&rio, connfd); //初始化描述符
   while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
+    if (myredis->err) {
+      cout << "Connection Error:" << myredis->errstr << endl;
+    }
 	int j = 0;
   	int k = 0;
     int i = 4;
@@ -23,12 +30,11 @@ void echo(int connfd) {
     while (*p++ != '\0') {
 	  count++;
 	}
-	if (buf[0] == 's') {
-	  string a = "OK\n";
+	if (buf[0] == 's' || buf[0] == 'S') {
 	  for (i = 4 ; i < count; i++) {
 	    if (buf[i] != ' ') {
 		  char c = buf[i];
-		  key.push_back(c);	
+		  key.push_back(c);
 		} else {
 		  break;
 	  	}
@@ -42,11 +48,17 @@ void echo(int connfd) {
 		}
 	  }
       cout << "key: " << key << ",value: " << value << endl;
-	  mp[key] = value;
-	  strcpy(buf,a.c_str());
-	  Rio_writen(connfd, buf, a.size());
-	}
-	else if (buf[0] == 'g') {
+      my_mutex.lock();
+      redisReply* reply = (redisReply*)redisCommand(myredis, "SET %s %s", key.c_str(), value.c_str());
+      my_mutex.unlock();
+      cout << "hekl" << endl;
+      cout << reply->str << endl;
+	 // strcpy(buf, a.c_str());
+	 // Rio_writen(connfd, buf, a.size());
+     // freeReplyObject(reply);
+	  // mp[key] = value;
+   	}
+	else if (buf[0] == 'g' || buf[0] == 'G') {
 	  for (i = 4 ; i < count; i++) {
 	    if (buf[i] != ' ' && buf[i] != '\n') {
 		  char c = buf[i];
@@ -55,18 +67,24 @@ void echo(int connfd) {
 		  break;
 		}
 	  }
-      cout << "key: " << key << ",value: " << value << endl;
-	  if (mp.find(key) == mp.end()) {
-	    string a = "ERROR\n";
-		strcpy(buf,a.c_str());
-		Rio_writen(connfd, buf, a.size());
-	  } else {
-        cout << "find" << endl;
-		strcpy(buf,mp[key].c_str());
-		Rio_writen(connfd, buf, mp[key].size());
-	  }
+      cout << "key: " << key << endl;
+     // cout << "key: " << key << ",value: " << value << endl;
+      redisReply* reply1 = (redisReply*)redisCommand(myredis, "GET %s", key.c_str());
+      string b;
+      cout << reply1->str;
+      if (!reply1) {
+        strcpy(buf, b.c_str());
+        Rio_writen(connfd, buf, b.size());
+      } else {
+        strcpy(buf, b.c_str());
+        Rio_writen(connfd, buf, b.size());
+      }
+      freeReplyObject(reply1);
 	} else {
-	  Rio_writen(connfd, buf, n);
+      string a = "nothing\n";
+      strcpy(buf, a.c_str());
+      Rio_writen(connfd, buf, a.size());
 	}
   }
+  redisFree(myredis);
 }

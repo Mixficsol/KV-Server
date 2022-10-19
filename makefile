@@ -3,7 +3,7 @@ CLIENT = csapp.o echoclient.o
 SERVER = echoservert.o echo.o csapp.o sbuf.o
 all:
 	g++ -c $(SOURCE)
-	g++ -o client $(CLIENT) -lpthread
-	g++ -o server $(SERVER) -lpthread
+	g++ -o client $(CLIENT) -lpthread -lhiredis
+	g++ -o server $(SERVER) -lpthread -lhiredis
 clear:
 	rm *.o
