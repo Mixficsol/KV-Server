@@ -1,7 +1,7 @@
 #include "csapp.h"
 
 int main(int argc, char **argv) {
-  int clientfd, port;
+  int clientfd, port, n;
   char *host, buf[MAXLINE];
   rio_t rio;
 
@@ -16,7 +16,11 @@ int main(int argc, char **argv) {
 
   while (Fgets(buf, MAXLINE, stdin) != NULL) {
     Rio_writen(clientfd, buf, strlen(buf));
-	Rio_readlineb(&rio, buf, MAXLINE);
+   // printf("bufpre: %s", buf);
+	if ((n = Rio_readlineb(&rio, buf, MAXLINE) < 0)) {
+      fprintf(stderr, "rio_readlineb error \n");        
+    }
+   // printf("buf: %s\n", buf);
 	Fputs(buf, stdout);
   }
   Close(clientfd);
