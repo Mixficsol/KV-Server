@@ -1,7 +1,8 @@
 #include "csapp.h"
-#include "hiredis/hiredis.h"
+#include "IO-server.h"
 #include <map>
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 
@@ -13,7 +14,7 @@ map<string, string> mp;
 void echo(int connfd) {
   char buf[MAXLINE];
   size_t n;
-  string order, key, value, word; // 创建指令, key, value,返回字符
+  string order, key, value, word, sql; // 创建指令, key, value, 返回语句, 存入文件语句
   rio_t rio;
   Rio_readinitb(&rio, connfd); // 初始化描述符
   while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
@@ -50,16 +51,13 @@ void echo(int connfd) {
     }
     if (order.compare("set") == 0) {   // 判断指令
       word = "OK\n";
-      mp[key] = value;
+      IO_server a;
+      a.set(order, key, value);
     }
     else if (order.compare("get") == 0) {
-      map<string, string>::iterator iter = mp.find(key);
-      if (iter != mp.end()) {
-        word = iter->second;
-        word.push_back('\n');
-      } else {
-        word = "Not find\n";
-      }
+      IO_server a;
+      word = a.get(order, key);
+      word.append("\n");
     } else {
       word = "Error\n";
     }
