@@ -1,6 +1,5 @@
 #include "csapp.h"
 #include "IO-server.h"
-#include <map>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -9,7 +8,6 @@
 using namespace std;
 
 mutex my_mutex;
-map<string, string> mp;
 
 void echo(int connfd) {
   char buf[MAXLINE];
@@ -25,7 +23,7 @@ void echo(int connfd) {
     value.clear(); //初始化字符串
     word.clear();
     while (*p++ != '\0') {
-      cnt++;
+      cnt++;  // 判断字符串长度
     }
     for (i = 0; i < 3; i++) {
       order.push_back(buf[i]); // 指令赋值
@@ -51,12 +49,12 @@ void echo(int connfd) {
     }
     if (order.compare("set") == 0) {   // 判断指令
       word = "OK\n";
-      IO_server a;
+      IO_server a;   // 调用set接口
       a.set(order, key, value);
     }
     else if (order.compare("get") == 0) {
       IO_server a;
-      word = a.get(order, key);
+      word = a.get(order, key);  // 调用get接口
       word.append("\n");
     } else {
       word = "Error\n";
