@@ -1,19 +1,26 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
+#include "Encode.h"
+#define CFG_FILE "./config"
 using namespace std;
 
 class IO_server {
   public:  // 公共部分函数   
       
   void set(string order, string key, string value) {  // set函数参数指令,key,value
+    int maxpos;
     ofstream ofs;
     string sql = "";
     ofs.open("test.txt", ios::app); // 供写，文件不存在则创建，若文件已存在则在原文件内容后写入新的内容，指针位置总在最后
-    sql = sqlSplice(sql, order, 1);
-    sql = sqlSplice(sql, key, 1);
-    sql = sqlSplice(sql, value, 0);
+    maxpos = ofs.tellp();
+    if (maxpos == 0) {
+     ofs << "begin: " << endl;
+    }
+    EncodeFix a;
+    sql = a.sqlSplice(sql, order, 1);
+    sql = a.sqlSplice(sql, key, 1);
+    sql = a.sqlSplice(sql, value, 0);
     ofs << sql << endl;  // 写入文件
     ofs.close(); // 关闭文件
   }
@@ -22,6 +29,7 @@ class IO_server {
     int maxpos; // 文本的字符数量
     char x; // 文件每次读入的字符
     bool flag = false;
+    EncodeFix a;
     ifstream f("test.txt", ios::ate); // 文件打开时，指针在文件最后
     string order, key, value, line = "";
     if (!f) {
@@ -40,11 +48,16 @@ class IO_server {
         if (templine.size() > 0) { // 判断这行语句是空语句还是非空
           position = 0; // 初始化位置
           order = Extract(templine);
+          cout << "------------------------------" << endl;
+          cout << "order: " << order << endl;
           key = Extract(templine);
+          cout << "key: " << key << endl;
           value = Extract(templine);
+          cout << "value: " << value << endl;
+          cout << "------------------------------" << endl;
           if (key.compare(Key) == 0 && !value.empty()) { // 判断文件是否有对应的key以及此时的key有没有value值
             flag = true;
-            value = getWord(value);
+            value = a.getWord(value);
             break;
           }
         }
@@ -57,11 +70,16 @@ class IO_server {
     if (flag) {
       return value;  // 找到返回value
     } else {
-      return getWord("not found"); // 未找到返回not found
+      return a.getWord("not found"); // 未找到返回not found
     }
   }
 
-  int getCharLength(char *p) {  // 获取从客户端发来的字符串长度
+  string flushall() {
+      std::fstream f("test.txt", std::fstream::out | std::ios_base::trunc); // 清空文件
+    return "clear\n";
+  }
+
+/*  int getCharLength(char *p) {  // 获取从客户端发来的字符串长度
     int cnt;
     while (*p++ != '\0') {
       cnt++;
@@ -103,7 +121,7 @@ class IO_server {
       sql.append(ch);
     }
     return sql;
-  }
+  }*/
 
   string Extract(string templine) {
     string word = ""; // 用来存字符串大小例如3 set 3 123 3 456中set前面的3这样的数值
