@@ -74,56 +74,16 @@ class IO_server {
     }
   }
 
-  string flushall() {
+  string flushall() {  // 使用文件清空
       std::fstream f("test.txt", std::fstream::out | std::ios_base::trunc); // 清空文件
     return "clear\n";
   }
-
-/*  int getCharLength(char *p) {  // 获取从客户端发来的字符串长度
-    int cnt;
-    while (*p++ != '\0') {
-      cnt++;
-    }
-    return cnt;
+  
+  void Flushall() { // 清空leveldb数据库
+    int flag = system( "rm -rf /root/Git/KV-Server/leveldb.db");
   }
 
-  string getOrder(char *buf, int index, int maxsize) {  // 获取字符串长度的指令，key, value
-    string order;
-    for (int i = index; i < maxsize; i++) {
-      if (buf[i] != '\n' && buf[i] != ' ') {
-        order.push_back(buf[i]);
-      } else {
-        break;
-      }
-    }
-    return order;
-  }
-
-  void orderTolower(string order) {  // 指令小写化
-    string::iterator it = order.begin();
-    while (it != order.end()) {
-      *it = tolower(*it);
-      ++it;
-    }
-  }
-
-  string getWord(string word) {
-   word.append("\n");
-   return word;
-  }
-
-  string sqlSplice(string sql, string word, int flag) {
-    string ch = " ";
-    sql.append(to_string(word.size()));  // 拼接语句类似于3 set 3 123 3 456这种结构
-    sql.append(ch);
-    sql.append(word);
-    if (flag) {
-      sql.append(ch);
-    }
-    return sql;
-  }*/
-
-  string Extract(string templine) {
+  string Extract(string templine) { // 提取字符串中的key，value
     string word = ""; // 用来存字符串大小例如3 set 3 123 3 456中set前面的3这样的数值
     string str = ""; // 返回值
     int size;

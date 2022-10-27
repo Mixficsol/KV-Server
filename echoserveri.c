@@ -1,6 +1,6 @@
 #include "csapp.h"
 
-void echo(int connfd);
+int echo(int connfd);
 
 int main(int argc, char **argv) {
   int listenfd, connfd, port;  //侦听描述符，读写描述符，端口
@@ -21,7 +21,10 @@ int main(int argc, char **argv) {
 	hp = Gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,sizeof(clientaddr.sin_addr.s_addr), AF_INET); //将套接字地址结构转换成主机和服务串
 	haddrp = inet_ntoa(clientaddr.sin_addr); //sin_adder成员是一个32位IP地址
 	printf("server connected to %s (%s) \n", hp->h_name, haddrp);
-	echo(connfd);
+	int flag = echo(connfd);
+    if (flag) {
+      break;
+    }
 	Close(connfd);
   }
   exit(0);

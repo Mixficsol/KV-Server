@@ -1,4 +1,4 @@
-SOURCE = csapp.c echoserveri.c echoclient.c echo.cpp sbuf.c
+SOURCE = csapp.c echoserveri.c echoclient.cpp echo.cpp sbuf.c
 CLIENT = csapp.o echoclient.o
 SERVER = echoserveri.o echo.o csapp.o sbuf.o
 all:
