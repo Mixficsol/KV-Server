@@ -397,7 +397,6 @@ static int cliConnect(int force) {
          * commands. At the same time this improves the detection of real
          * errors. */
         anetKeepAlive(NULL, context->fd, REDIS_CLI_KEEPALIVE_INTERVAL);
-
         /* Do AUTH and select the right DB. */
         if (cliAuth() != REDIS_OK)
             return REDIS_ERR;
@@ -1054,19 +1053,19 @@ static int evalMode(int argc, char **argv) {
     size_t nread;
     char **argv2;
     int j, got_comma = 0, keys = 0;
-
+    printf("0\n");
     /* Load the script from the file, as an sds string. */
     fp = fopen(config.eval,"r");
+    printf("1\n");
     if (!fp) {
-        fprintf(stderr,
-            "Can't open file '%s': %s\n", config.eval, strerror(errno));
+        fprintf(stderr, "Can't open file '%s': %s\n", config.eval, strerror(errno));
         exit(1);
     }
-    while((nread = fread(buf,1,sizeof(buf),fp)) != 0) {
+    while ((nread = fread(buf,1,sizeof(buf),fp)) != 0) {
         script = sdscatlen(script,buf,nread);
     }
     fclose(fp);
-
+    printf("2\n");
     /* Create our argument vector */
     argv2 = zmalloc(sizeof(sds)*(argc+3));
     argv2[0] = sdsnew("EVAL");
@@ -2172,7 +2171,7 @@ static void intrinsicLatencyMode(void) {
 int main(int argc, char **argv) {
     int firstarg;
     config.hostip = sdsnew("127.0.0.1");
-    config.hostport = 1024;
+    config.hostport = 6379;
     config.hostsocket = NULL;
     config.repeat = 1;
     config.interval = 0;
@@ -2205,17 +2204,20 @@ int main(int argc, char **argv) {
     spectrum_palette = spectrum_palette_color;
     spectrum_palette_size = spectrum_palette_color_size;
 
-    if (!isatty(fileno(stdout)) && (getenv("FAKETTY") == NULL))
+    if (!isatty(fileno(stdout)) && (getenv("FAKETTY") == NULL)) {
         config.output = OUTPUT_RAW;
-    else
+    } else {
         config.output = OUTPUT_STANDARD;
+    }
     config.mb_delim = sdsnew("\n");
     cliInitHelp();
-
+    printf("argc: %d", argc);
+    printf("argv[0] %s", argv[0]);
+    printf("argv[1] %s", argv[1]);
+    printf("argv[2] %s", argv[2]);
     firstarg = parseOptions(argc,argv);
     argc -= firstarg;
     argv += firstarg;
-
     /* Latency mode */
     if (config.latency_mode) {
         if (cliConnect(0) == REDIS_ERR) exit(1);
@@ -2227,7 +2229,6 @@ int main(int argc, char **argv) {
         if (cliConnect(0) == REDIS_ERR) exit(1);
         latencyDistMode();
     }
-
     /* Slave mode */
     if (config.slave_mode) {
         if (cliConnect(0) == REDIS_ERR) exit(1);
@@ -2270,26 +2271,25 @@ int main(int argc, char **argv) {
         if (cliConnect(0) == REDIS_ERR) exit(1);
         LRUTestMode();
     }
-
     /* Intrinsic latency mode */
-    if (config.intrinsic_latency_mode) intrinsicLatencyMode();
+    if (config.intrinsic_latency_mode)intrinsicLatencyMode();
 
     /* Start interactive mode when no command is provided */
     if (argc == 0 && !config.eval) {
         /* Ignore SIGPIPE in interactive mode to force a reconnect */
         signal(SIGPIPE, SIG_IGN);
-
         /* Note that in repl mode we don't abort on connection error.
          * A new attempt will be performed for every command send. */
         cliConnect(0);
         repl();
     }
-
     /* Otherwise, we have some arguments to execute */
-    if (cliConnect(0) != REDIS_OK) exit(1);
+    if (cliConnect(0) != REDIS_OK) {
+      exit(1);  
+    }
     if (config.eval) {
-        return evalMode(argc,argv);
+      return evalMode(argc,argv);
     } else {
-        return noninteractive(argc,convertToSds(argc,argv));
+      return noninteractive(argc,convertToSds(argc,argv));
     }
 }
