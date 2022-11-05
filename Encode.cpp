@@ -6,10 +6,7 @@
 
 using namespace std;
 
-int cur_pos;
-int size, length;
-
-bool FindNextSeparators(const string& in) {  // 找到下一个'\n'的位置
+bool FindNextSeparators(const string& in, int& length, int& cur_pos) {  // 找到下一个'\n'的位置
   if (cur_pos > length - 1) {
     return false;
   }
@@ -25,14 +22,14 @@ bool FindNextSeparators(const string& in) {  // 找到下一个'\n'的位置
 } 
 
 
-void Split(const string& in, std::vector<std::string>* out) { // 使key, value, 指令装到vector里面
+void Split(const string& in, std::vector<std::string>* out, int& cur_pos, int& size) { // 使key, value, 指令装到vector里面
   string str = "";
   str.assign(in, cur_pos, size);
   out->push_back(str);
   cur_pos = cur_pos + size;
 }
 
-bool Judgestring(const string& in) {  // 判断是不是以*开头的序列化语句
+bool Judgestring(const string& in, int& cur_pos) {  // 判断是不是以*开头的序列化语句
   if (in[cur_pos] == '*') {
     cur_pos++;
     return true;
@@ -41,7 +38,7 @@ bool Judgestring(const string& in) {  // 判断是不是以*开头的序列化�
   }
 }
 
-bool JudgeOrder(const string& in) { // 判断是不是以$开头的参数语句
+bool JudgeOrder(const string& in, int& cur_pos) { // 判断是不是以$开头的参数语句
   if (in[cur_pos] == '$') {
     cur_pos++;
     return true;
@@ -50,12 +47,12 @@ bool JudgeOrder(const string& in) { // 判断是不是以$开头的参数语句
   }
 }
 
-bool paramtertotal(const string& in) { // 使字符串指令变成int类型的size
+bool paramtertotal(const string& in, int& cur_pos, int& size) { // 使字符串指令变成int类型的size
   string word = "";
   string str = "";
   int pos = cur_pos;
   while (in[pos] != '\\') {
-    if (in[pos] >= 48 && in[pos] <= 57) { // 判断参数里面有没有掺杂字母比如3f4这种就不合理
+    if (in[pos] >= '0' && in[pos] <= '9') { // 判断参数里面有没有掺杂字母比如3f4这种就不合理
       word.push_back(in[pos]);
       pos++;
     } else {
@@ -72,21 +69,21 @@ int main() {
   vector<string> v;
   char str[1010] = {};
   string in;
-  int cnt;
+  int cnt, cur_pos, size, length;
   cur_pos = 0;
   scanf("%s", &str);
   cout << str << endl;
   in = (string)str;
   length = in.size();
-  assert(Judgestring(in));
-  assert(paramtertotal(in));
+  assert(Judgestring(in, cur_pos));
+  assert(paramtertotal(in, cur_pos, size));
   cnt = size;
   while (cnt--) {
-    assert(FindNextSeparators(in));
-    assert(JudgeOrder(in));
-    assert(paramtertotal(in));
-    assert(FindNextSeparators(in));
-    Split(in, &v);
+    assert(FindNextSeparators(in, length, cur_pos));
+    assert(JudgeOrder(in, cur_pos));
+    assert(paramtertotal(in, cur_pos, size));
+    assert(FindNextSeparators(in, length, cur_pos));
+    Split(in, &v, cur_pos, size);
   }
   cout << v[0] << ' ' << v[1] << ' ' << v[2] << endl;
   return 0;
