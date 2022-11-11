@@ -3,11 +3,13 @@
 #include <string>
 #include <assert.h>
 #include <stdio.h>
+#include "glog/logging.h"
 
 using namespace std;
 
 bool FindNextSeparators(const string& in, int& length, int& cur_pos) {  // 找到下一个'\n'的位置
   if (cur_pos > length - 1) {
+    LOG(ERROR) << "字符串格式错误";
     return false;
   }
   int pos = cur_pos;
@@ -18,6 +20,7 @@ bool FindNextSeparators(const string& in, int& length, int& cur_pos) {  // 找�
     }
     pos++;
   }
+  LOG(ERROR) << "字符串格式错误";
   return false;
 } 
 
@@ -34,6 +37,7 @@ bool Judgestring(const string& in, int& cur_pos) {  // 判断是不是以*开头
     cur_pos++;
     return true;
   } else {
+    LOG(ERROR) << "字符串格式错误";
     return false;
   }
 }
@@ -43,6 +47,7 @@ bool JudgeOrder(const string& in, int& cur_pos) { // 判断是不是以$开头�
     cur_pos++;
     return true;
   } else {
+    LOG(ERROR) << "字符串格式错误";
     return false;
   }
 }
@@ -56,7 +61,7 @@ bool paramtertotal(const string& in, int& cur_pos, int& size) { // 使字符串�
       word.push_back(in[pos]);
       pos++;
     } else {
-      cout << "false" << endl;
+      LOG(ERROR) << "字符串格式错误";
       return false;  
     }
   }
@@ -65,10 +70,12 @@ bool paramtertotal(const string& in, int& cur_pos, int& size) { // 使字符串�
   return true;
 }
 
-int main() {
+int main(int argc, char*argv[]) {
   vector<string> v;
   char str[1010] = {};
   string in;
+  google::InitGoogleLogging(argv[0]);
+  FLAGS_log_dir = "./log";
   int cnt, cur_pos, size, length;
   cur_pos = 0;
   scanf("%s", &str);
@@ -86,6 +93,7 @@ int main() {
     Split(in, &v, cur_pos, size);
   }
   cout << v[0] << ' ' << v[1] << ' ' << v[2] << endl;
+  google::ShutdownGoogleLogging();
   return 0;
 }
 

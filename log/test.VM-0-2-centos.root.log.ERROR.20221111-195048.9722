@@ -1,0 +1,4 @@
+Log file created at: 2022/11/11 19:50:48
+Running on machine: VM-0-2-centos
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E1111 19:50:48.333541  9722 test.cpp:10] Got lots of cookies

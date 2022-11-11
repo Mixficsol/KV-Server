@@ -1,25 +1,13 @@
 #include <iostream>
-#include <stdio.h>
-#include <assert.h>
-#include "csapp.h"
+#include "glog/logging.h"
 
 using namespace std;
 
-char buf[1010];
-
-int main() {
-  Fgets(buf, MAXLINE, stdin);
- /* for (int i = 0; str[i] != '\0'; i++) {
-    a = a + str[i];
-  }
-  cout << "hello" << endl;*/
-/*  for (int i = 0; i <= 10; i+=2) {
-    str[i] = '1';
-    str[i + 1] = '\n';
-  }*/
-  for (int i = 0; i <= 10; i++) {
-    cout << buf[i];  
-  }
-  cout << endl;
+int main(int argc, char*argv[]) {
+  int num_cookies = 11;
+  google::InitGoogleLogging(argv[0]); 
+  FLAGS_log_dir = "./log";
+  LOG_IF(ERROR, num_cookies > 10) << "Got lots of cookies";
+  google::ShutdownGoogleLogging();
   return 0;
 }

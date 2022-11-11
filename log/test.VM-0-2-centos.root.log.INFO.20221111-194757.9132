@@ -1,0 +1,4 @@
+Log file created at: 2022/11/11 19:47:57
+Running on machine: VM-0-2-centos
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I1111 19:47:57.986224  9132 test.cpp:10] hello world
