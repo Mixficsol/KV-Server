@@ -1,3 +1,6 @@
 [submodule "hiredis"]
 	path = hiredis
 	url = https://github.com/redis/hiredis.git
+[submodule "leveldb"]
+	path = leveldb
+	url = https://github.com/google/leveldb.git
