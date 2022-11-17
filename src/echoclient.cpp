@@ -1,12 +1,12 @@
-//#include <iostream>
+#include <iostream>
 #include "csapp.h"
-//#include "Encode.h"
+#include "Encode.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
   int clientfd, port, n;
- // string str;
+  string str;
   char *host, buf[MAXLINE];
   rio_t rio;
 
@@ -17,19 +17,19 @@ int main(int argc, char **argv) {
   host = argv[1];
   port = atoi(argv[2]);
   clientfd = Open_clientfd(host, port); //返回clientd描述符用于读写
-  Rio_readinitb(&rio, clientfd);
+  // 建立和服务器的连接
+  Rio_readinitb(&rio, clientfd); //初始化描述符,将描述符fd和地址rp处的一个类型为rio_t的读缓冲区联系起来
 
   while (Fgets(buf, MAXLINE, stdin) != NULL) {
-  //  EncodeFix b;
-    Rio_writen(clientfd, buf, strlen(buf));
-	if ((n = Rio_readlineb(&rio, buf, MAXLINE) < 0)) {
+    EncodeFix b;
+    Rio_writen(clientfd, buf, strlen(buf)); // // 从位置buf处传送strlen(buf)个字节到描述符fd
+	if ((n = Rio_readlineb(&rio, buf, MAXLINE) < 0)) { //从一个内部读缓冲区复制一个文本行，当缓冲区变空时，会自动调用read重新填满缓冲区
       fprintf(stderr, "rio_readlineb error \n");        
     }
-/*    str = b.getOrder(buf, 0, 4);
+    str = b.getOrder(buf, 0, 4);
     if (str.compare("exit") == 0) {
-      cout << "str: " << str << endl;
       break;
-    }*/
+    }
 	Fputs(buf, stdout);
   }
   Close(clientfd);

@@ -3,9 +3,9 @@ CLIENT := csapp.o echoclient.o
 SERVER := echoserveri.o echo.o csapp.o sbuf.o
 
 all:
-	g++ -c $(SOURCE) -L./hiredis -static -lhiredis
-	g++ -o client $(CLIENT) -lpthread -lhiredis -lleveldb 
-	g++ -o server $(SERVER) -lpthread -lhiredis -lleveldb
+	g++ -c $(SOURCE)
+	g++ -o client $(CLIENT) -lpthread -lleveldb -lboost_system -lboost_filesystem 
+	g++ -o server $(SERVER) -lpthread -lleveldb -lboost_system -lboost_filesystem
 
 clear:
 	rm *.o
