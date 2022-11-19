@@ -9,7 +9,7 @@ leveldb::DB *db;
 leveldb::Options options;
 string dbpath = "leveldb.db";
 
-bool echo(char* buf) {
+void echo(char* buf) {
   size_t n;
   bool flag;
   int index, cnt;
@@ -40,8 +40,7 @@ bool echo(char* buf) {
       word = b.getWord("leveldb write faile");
     }
     // a.set(order, key, value); //文件实现set指令
-  }
-  else if (order.compare("get") == 0) { // 判断指令，执行get
+  } else if (order.compare("get") == 0) { // 判断指令，执行get
     status = db->Get(leveldb::ReadOptions(), key, &result); // 使用leveldb数据库的get方法
     if (status.ok()) {
       word = b.getWord(result);
@@ -49,22 +48,20 @@ bool echo(char* buf) {
       word = b.getWord("not found");
     }
     // word = a.get(key); // 调用get接口(文件实现)
-  }
-  else if (order.compare("flushall") == 0) { // 删除数据库
+  } else if (order.compare("flushall") == 0) { // 删除数据库
     a.Flushall();
     word = b.getWord("clear");
     // word = a.flushall(); // 文件清空数据库
-  }
-  else if (order.compare("exit") == 0) { // 退出服务器
-    flag = true;
-  }
-  else {  // 其他指令识别成Error
+  } else if (order.compare("exit") == 0) { // 退出服务器
+    word = b.getWord("exit");
+  } else if (order.compare("shutdown") == 0) {
+    word = b.getWord("shutdown");
+  } else {  // 其他指令识别成Error
     word = b.getWord("Error");
   }
   delete db; // 关闭数据库
   strcpy(buf, word.c_str()); // 将string类型转为char*类型
   buf[word.size()] = '\0';
-  return flag;
 }
 
 

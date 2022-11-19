@@ -1,5 +1,5 @@
 #include "csapp.h"
-#include "Encode.h"
+#include "include/Encode.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -17,7 +17,7 @@
 
 using namespace std;
 
-bool echo(char* line);
+void echo(char* line);
 
 int main(int argc, char **argv) {
   char line[MAXLINE];
@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
   struct sockaddr_in clientaddr; //套接字结构(用于存放套字节地址)
   struct epoll_event ev, events[20]; //声明epoll_event结构体的变量,ev用于注册事件,数组用于回传要处理的事件
   EncodeFix a;
+  bool flag;
   epfd = epoll_create(256); //生成用于处理accept的epoll专用的文件描述符
   if (argc != 2) {
     fprintf(stderr, "usage: %s <port>\n", argv[0]);
@@ -41,6 +42,10 @@ int main(int argc, char **argv) {
   ev.events = EPOLLIN|EPOLLET; // 设置要处理的事件类型
   epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &ev); // 注册epoll事件
   while (1) {
+    KOOK(line);
+    if (line[0] == 's' && line[1] == 'h') {
+      break;
+    }
     nfds = epoll_wait(epfd, events, 20, 500);
     for (i = 0; i < nfds; ++i) {
       if (events[i].data.fd == listenfd) {
@@ -83,10 +88,15 @@ int main(int argc, char **argv) {
         sockfd = events[i].data.fd;
         n = a.getCharLength(line);
         write(sockfd, line, n);
-        ev.data.fd = sockfd; // 设置用于读操作的文件描述符
-        ev.events = EPOLLIN|EPOLLET; // 修改sockfd上要处理的事件为EPOLIN
-        epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
+        if (line[0] == 's' && line[1] == 'h') {
+          break;
+        } else {
+          ev.data.fd = sockfd; // 设置用于读操作的文件描述符
+          ev.events = EPOLLIN|EPOLLET; // 修改sockfd上要处理的事件为EPOLIN
+          epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
+        }
       }
     }
   }
+  return 0;
 }

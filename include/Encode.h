@@ -13,6 +13,18 @@ class EncodeFix {
     }
     return cnt;
   }
+  
+  int KOOK(char *p) { // 判断指令
+    char *q = "shutdown";
+    int flag = 1;
+    for (int i = 0; i < 8; i++) {
+      if (p[i] != q[i]) {
+        flag = 0;
+        break;
+      }
+    }
+    return flag;
+  }
 
   string getOrder(char *buf, int index, int maxsize) { // 获取字符串长度指令, key, value
     string order;

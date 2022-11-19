@@ -30,6 +30,10 @@ int main(int argc, char **argv) {
     if (str.compare("exit") == 0) {
       break;
     }
+    str = b.getOrder(buf, 0, 8);
+    if (str.compare("shutdown") == 0) {
+      break;
+    }
 	Fputs(buf, stdout);
   }
   Close(clientfd);
