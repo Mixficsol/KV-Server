@@ -1,11 +1,15 @@
-#include "../include/kv_coon.h"
-#include "../include/kv_encode.h"
-#include "../include/kv_io.h"
-#include "../include/csapp.h"
-#include "../include/kv_leveldb.h"
+#include "csapp.h"
+#include "kv_coon.h"
+#include "kv_encode.h"
+#include "kv_io.h"
+#include "kv_leveldb.h"
+#include "storage_engine.h"
+
 #include <string>
 #include <iostream>
 #include <vector>
+
+using namespace leveldb;
 
 std::vector<std::string>Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   IO_server a;
@@ -57,20 +61,22 @@ std::vector<std::string>Coon::Finterpreter(char *buf) { // 解析序列化后的
 int Coon::GetRequest(std::vector<std::string> data, char* buf) {
   EncodeFix b;
   LevelDB c;
-  leveldb::Status status;
+  Status s;
   std::string word, result;
   std::string order = data[0];
   std::string key = data[1];
   std::string value = data[2];
+
   if (order.compare("set") == 0) {
-    if (c.LevelDB_set(key, value)) {
+    s = StorageEngine::GetCurrent()->Set(key, value);
+    if (s.ok()) {
       word = b.getWord("insert successful!");
     } else {
       word = b.getWord("insert failed");
     }
   } else if (order.compare("get") == 0) {
-    status = c.LevelDB_get(key, &result);
-    if (status.ok()) {
+    s = c.LevelDB_get(key, &result);
+    if (s.ok()) {
       word = b.getWord(result);
     } else {
       word = b.getWord("not found");
