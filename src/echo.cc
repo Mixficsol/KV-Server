@@ -13,7 +13,7 @@ int echo(char* buf) {
   bool flag;
   int index, cnt;
   std::string order, key, value, word, result; // 创建指令, key, value, 返回语句
-
+  leveldb::Status status;
   index = 0;
   cnt = 0;
   flag = false;
@@ -26,12 +26,18 @@ int echo(char* buf) {
   b.orderTolower(order); // 将指令小写化
   std::cout << "order: " << order << std::endl;
   if (order.compare("set") == 0) {   // 判断指令，执行set
-   // result = c.LevelDB_set(key, value);
-   // std::cout << "result: " << result << std::endl;
-    word = b.getWord("good");
+    if (c.LevelDB_set(key, value)) {
+      word = b.getWord("insert successful");
+    } else {
+      word = b.getWord("insert failed");
+    }
   } else if (order.compare("get") == 0) { // 判断指令，执行get
-    result =  c.LevelDB_get(key);
-    word = b.getWord(result);
+    status = c.LevelDB_get(key, &result);
+    if (status.ok()) {
+      word = b.getWord(result);
+    } else {
+      word = b.getWord("not found");
+    }
   } else if (order.compare("flushall") == 0) { // 删除数据库
     result = c.Flushall();
   } else if (order.compare("exit") == 0) { // 退出服务器

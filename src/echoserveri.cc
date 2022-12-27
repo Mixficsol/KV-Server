@@ -3,8 +3,10 @@
 #include "../include/kv_io.h"
 #include "../include/kv_leveldb.h"
 #include "../include/kv_cluster_epoll.h"
+#include "../include/kv_coon.h"
 #include <string>
 #include <iostream>
+#include <vector>
 
 #define OPEN_MAX 100
 #define SERV_PORT 5000
@@ -16,6 +18,8 @@ int main(int argc, char **argv) {
   LevelDB a;
   Cluster_Epoll b;
   EncodeFix c;
+  Coon d;
+  std::vector<std::string> v;
   char line[MAXLINE];
   ssize_t n;
   int listenfd, connfd, port, i, sum, fd, size; //侦听描述符，读写描述符，端口
@@ -39,7 +43,7 @@ int main(int argc, char **argv) {
   listenfd = Open_listenfd(port); // 服务器创建一个监听描述符，准备好接受连接请求
   b.Epoll_Init(listenfd);
   while (1) {
-    int kf = c.KOOK(line);
+    int f = c.JudgeShutdown(line);
     if (line[0] == 's' && line[1] == 'h') {
       break;
     }
@@ -66,7 +70,9 @@ int main(int argc, char **argv) {
             std::cout << "readline error" << std::endl;
           }
         } else {
-          size = echo(line);
+          v = d.NormalFinterpreter(line);
+          size = d.GetRequest(v, line);
+          // size = echo(line);
           std::cout << "line: " << line << std::endl;
           b.Set_Write(fd);
         }

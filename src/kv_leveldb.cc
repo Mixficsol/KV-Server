@@ -4,8 +4,8 @@
 #include <iostream>
 
 leveldb::DB *db;
-leveldb::Options options;
 leveldb::Status status;
+leveldb::Options options;
 std::string dbpath = "leveldb.db";
 
 bool LevelDB::OpenDatabase() { 
@@ -18,24 +18,19 @@ bool LevelDB::OpenDatabase() {
   }
 }
 
-std::string LevelDB::LevelDB_set(std::string key, std::string value) {
+bool LevelDB::LevelDB_set(std::string key, std::string value) {
   status = db->Put(leveldb::WriteOptions(), key, value);
   if (status.ok()) {
-     return "insert successful!";
+     return true;
   } else {
-     return "leveldb write faile";
+     return false;
   }
 }
 
-std::string LevelDB::LevelDB_get(std::string key) {
-  std::string result;
-  status = db->Get(leveldb::ReadOptions(), key, &result);
+leveldb::Status LevelDB::LevelDB_get(std::string key, std::string* result) {
+  status = db->Get(leveldb::ReadOptions(), key, result);
   std::cout << "result: " << result << std::endl;
-  if (status.ok()) {
-    return result;
-  } else {
-    return "not found";
-  }
+  return status; 
 }
 
 std::string LevelDB::Flushall() {
@@ -48,6 +43,7 @@ std::string LevelDB::Flushall() {
 }
 
 bool LevelDB::CloseDatabase() {
+  leveldb::DB *db;
   delete db;
   return true;
 }
