@@ -1,3 +1,5 @@
 leveldb.db/*
 *.o
 tags
+log/*
+db/*
