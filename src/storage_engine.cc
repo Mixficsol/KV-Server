@@ -36,6 +36,9 @@ Status StorageEngine::Open(const std::string& path) {
 void StorageEngine::Close() {
   assert(is_open_);
   delete leveldb_;
+
+  leveldb_ = nullptr;
+  is_open_ = false;
 }
 
 Status StorageEngine::FlushAll() {
