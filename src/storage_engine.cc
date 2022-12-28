@@ -46,11 +46,13 @@ Status StorageEngine::FlushAll() {
 }
 
 Status StorageEngine::Set(const std::string& key, const std::string& value) {
+  Status status = leveldb_->Put(leveldb::WriteOptions(), key, value);
   return Status::OK();
 }
 
 Status StorageEngine::Get(const std::string& key, std::string* const value) {
-  return Status::OK();
+  Status status = leveldb_->Get(leveldb::ReadOptions(), key, value);
+  return status;
 }
 
 Status StorageEngine::Delete(const std::string& key) {

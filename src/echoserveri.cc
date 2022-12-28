@@ -90,7 +90,9 @@ int main(int argc, char **argv) {
             std::cout << "readline error" << std::endl;
           }
         } else {
-          v = d.NormalFinterpreter(line);
+         // v = d.NormalFinterpreter(line);
+          v = d.Finterpreter(line);
+          std::cout << "v.size(): " << v.size() << std::endl;
           size = d.GetRequest(v, line);
           // size = echo(line);
           std::cout << "line: " << line << std::endl;

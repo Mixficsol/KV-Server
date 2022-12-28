@@ -54,7 +54,8 @@ std::vector<std::string>Coon::Finterpreter(char *buf) { // 解析序列化后的
     assert(a.FindNextSeparators(in, length, cur_pos));
     a.Split(in, &v, cur_pos, size);
   }
-  std::cout << v[0] << ' ' << v[1] << ' ' << v[2] << std::endl;
+  std::cout << "order: " << v[0] << std::endl;
+  std::cout << "key: " << v[1] << std::endl;
   return v;
 }
 
@@ -63,11 +64,14 @@ int Coon::GetRequest(std::vector<std::string> data, char* buf) {
   LevelDB c;
   Status s;
   std::string word, result;
+  std::cout << "Hello" << std::endl;
   std::string order = data[0];
   std::string key = data[1];
-  std::string value = data[2];
-
+  //std::string value = data[2];
+  std::cout << "order: " << order << std::endl;
+  std::cout << "key: " << key << std::endl;
   if (order.compare("set") == 0) {
+    std::string value = data[2];
     s = StorageEngine::GetCurrent()->Set(key, value);
     if (s.ok()) {
       word = b.getWord("insert successful!");
@@ -75,7 +79,10 @@ int Coon::GetRequest(std::vector<std::string> data, char* buf) {
       word = b.getWord("insert failed");
     }
   } else if (order.compare("get") == 0) {
-    s = c.LevelDB_get(key, &result);
+    std::cout << "key: " << key << std::endl;
+    std::cout << "key.size(): " << key.size() << std::endl;
+    s = StorageEngine::GetCurrent()->Get(key, &result);
+   // s = c.LevelDB_get(key, &result);
     if (s.ok()) {
       word = b.getWord(result);
     } else {
