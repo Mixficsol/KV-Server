@@ -8,12 +8,32 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <assert.h>
 
 using namespace leveldb;
 
-std::vector<std::string>Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
-  IO_server a;
-  EncodeFix b;
+Coon* Coon::coon_ = nullptr;
+
+Coon::Coon() {
+
+}
+
+Coon::~Coon() {
+
+}
+
+void Coon::Init() {
+  if (!coon_) {
+    coon_ = new Coon();
+  }
+}
+
+Coon* Coon::GetCurrent() {
+  assert(coon_ != nullptr);
+  return coon_;
+}
+
+std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
   size_t n;
   bool flag;
@@ -22,80 +42,68 @@ std::vector<std::string>Coon::NormalFinterpreter(char *buf) {  // 解析正常�
   index = 0;
   cnt = 0;
   flag = false;
-  cnt = b.getCharLength(buf);
-  order = b.getOrder(buf, index, cnt);
-  b.orderTolower(order);
+  cnt = EncodeFix::GetCurrent()->getCharLength(buf);
+  order = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
+  EncodeFix::GetCurrent()->orderTolower(order);
   v.push_back(order);
   index = index + order.size() + 1;
-  key = b.getOrder(buf, index, cnt);
+  key = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
   v.push_back(key);
   index = index + key.size() + 1;
-  value = b.getOrder(buf, index, cnt);
+  value = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
   v.push_back(value);
-  std::cout << "order: " << v[0] << std::endl;
   return v;
 }
 
-std::vector<std::string>Coon::Finterpreter(char *buf) { // 解析序列化后的数据
+std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后的数据
   int cnt, cur_pos, size, length;
   cur_pos = 0;
   std::vector<std::string> v;
-  EncodeFix a;
   std::string in;
   in = (std::string)buf;
   length = in.size();
-  assert(a.Judgestring(in, cur_pos));
-  assert(a.paramtertotal(in , cur_pos, size));
+  assert(EncodeFix::GetCurrent()->Judgestring(in, cur_pos));
+  assert(EncodeFix::GetCurrent()->paramtertotal(in , cur_pos, size));
   cnt = size;
   while (cnt--) {
-    assert(a.FindNextSeparators(in, length, cur_pos));
-    assert(a.JudgeOrder(in, cur_pos));
-    assert(a.paramtertotal(in, cur_pos, size));
-    assert(a.FindNextSeparators(in, length, cur_pos));
-    a.Split(in, &v, cur_pos, size);
+    assert(EncodeFix::GetCurrent()->FindNextSeparators(in, length, cur_pos));
+    assert(EncodeFix::GetCurrent()->JudgeOrder(in, cur_pos));
+    assert(EncodeFix::GetCurrent()->paramtertotal(in, cur_pos, size));
+    assert(EncodeFix::GetCurrent()->FindNextSeparators(in, length, cur_pos));
+    EncodeFix::GetCurrent()->Split(in, &v, cur_pos, size);
   }
-  std::cout << "order: " << v[0] << std::endl;
-  std::cout << "key: " << v[1] << std::endl;
   return v;
 }
 
 int Coon::GetRequest(std::vector<std::string> data, char* buf) {
-  EncodeFix b;
   LevelDB c;
   Status s;
   std::string word, result;
-  std::cout << "Hello" << std::endl;
   std::string order = data[0];
   std::string key = data[1];
-  //std::string value = data[2];
-  std::cout << "order: " << order << std::endl;
-  std::cout << "key: " << key << std::endl;
   if (order.compare("set") == 0) {
     std::string value = data[2];
     s = StorageEngine::GetCurrent()->Set(key, value);
     if (s.ok()) {
-      word = b.getWord("insert successful!");
+      word = EncodeFix::GetCurrent()->getWord("insert successful!");
     } else {
-      word = b.getWord("insert failed");
+      word = EncodeFix::GetCurrent()->getWord("insert failed");
     }
   } else if (order.compare("get") == 0) {
-    std::cout << "key: " << key << std::endl;
-    std::cout << "key.size(): " << key.size() << std::endl;
     s = StorageEngine::GetCurrent()->Get(key, &result);
-   // s = c.LevelDB_get(key, &result);
     if (s.ok()) {
-      word = b.getWord(result);
+      word = EncodeFix::GetCurrent()->getWord(result);
     } else {
-      word = b.getWord("not found");
+      word = EncodeFix::GetCurrent()->getWord("not found");
     }
   } else if (order.compare("flushall") == 0) {
     result = c.Flushall();
   } else if (order.compare("exit") == 0) {
-    word = b.getWord("exit");
+    word = EncodeFix::GetCurrent()->getWord("exit");
   } else if (order.compare("shutdown") == 0) {
-    word = b.getWord("shutdown");
+    word = EncodeFix::GetCurrent()->getWord("shutdown");
   } else {
-    word = b.getWord("Error");
+    word = EncodeFix::GetCurrent()->getWord("Error");
   }
   strcpy(buf, word.c_str());
   return word.size();

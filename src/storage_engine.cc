@@ -41,13 +41,20 @@ void StorageEngine::Close() {
   is_open_ = false;
 }
 
-Status StorageEngine::FlushAll() {
-  return Status::OK();
+bool StorageEngine::FlushAll() {
+  assert(is_open_);
+  delete leveldb_;
+  bool flag = system("rm -rf /root/Git/KV-Server/leveldb.db");
+  if (flag) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 Status StorageEngine::Set(const std::string& key, const std::string& value) {
   Status status = leveldb_->Put(leveldb::WriteOptions(), key, value);
-  return Status::OK();
+  return status;
 }
 
 Status StorageEngine::Get(const std::string& key, std::string* const value) {
@@ -56,5 +63,6 @@ Status StorageEngine::Get(const std::string& key, std::string* const value) {
 }
 
 Status StorageEngine::Delete(const std::string& key) {
-  return Status::OK();
+  Status status = leveldb_->Delete(leveldb::WriteOptions(), key);
+  return status;
 }

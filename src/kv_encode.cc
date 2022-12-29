@@ -1,6 +1,28 @@
 #include "../include/kv_encode.h"
 #include <glog/logging.h>
 #include <string>
+#include <assert.h>
+
+EncodeFix* EncodeFix::encode_fix_ = nullptr;
+
+EncodeFix::EncodeFix() {
+
+}
+
+EncodeFix::~EncodeFix() {
+
+}
+
+void EncodeFix::Init() {
+  if (!encode_fix_) {
+    encode_fix_ = new EncodeFix();
+  }
+}
+
+EncodeFix* EncodeFix::GetCurrent() {
+  assert(encode_fix_ != nullptr);
+  return encode_fix_;
+}
 
 int EncodeFix::getCharLength(char *p) { // 获取客户端传来的字符串长度
   int cnt;
