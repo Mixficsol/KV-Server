@@ -13,17 +13,16 @@
 using namespace leveldb;
 
 struct redisCommand{
+  char* name;
   void (*pf)(const std::vector<std::string>&, std::string* const); 
 };
 
 struct redisCommand redisCommandTable[] = {
-  {Coommand::SetCommandImpl},
+  {"set", Coomand::SetCommandImpl}
+ // {"get", Coommand::GetCoomandImpl},
 };
 
-std::map<std::string, redisCommand> mp;
-redisCommand* pd = (redisCommand*)malloc(sizeof(redisCommand));
-a->pf = Command::SetCommandImpl;
-mp["set"] = pf;
+std::map<std::string, struct redisCommand> mp;
 
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
@@ -67,8 +66,11 @@ int Coon::GetRequest(std::vector<std::string> data, char* buf) {
   Status s;
   std::string word, result, reply;
   std::string order = data[0];
-  void (*pf)(const std::vector<std::string>&, std::string* const) = mp[order];
-  pf(data, reply);
+  mp["set"] = redisCommandTable[0];
+  struct redisCommand rediscommand = mp[order];
+  void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+  Coomand::SetCommandImpl(data, &reply);
+ // pd(data, &reply);
  /* if (order.compare("set") == 0) {
     SetCommandImpl();
     std::string value = data[2];
