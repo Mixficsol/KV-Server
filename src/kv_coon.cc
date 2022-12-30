@@ -3,12 +3,27 @@
 #include "kv_encode.h"
 #include "kv_io.h"
 #include "storage_engine.h"
+#include "kv_command.h"
 
 #include <string>
 #include <iostream>
 #include <vector>
+#include <map>
 
 using namespace leveldb;
+
+struct redisCommand{
+  void (*pf)(const std::vector<std::string>&, std::string* const); 
+};
+
+struct redisCommand redisCommandTable[] = {
+  {Coommand::SetCommandImpl},
+};
+
+std::map<std::string, redisCommand> mp;
+redisCommand* pd = (redisCommand*)malloc(sizeof(redisCommand));
+a->pf = Command::SetCommandImpl;
+mp["set"] = pf;
 
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
@@ -50,10 +65,12 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
 
 int Coon::GetRequest(std::vector<std::string> data, char* buf) {
   Status s;
-  std::string word, result;
+  std::string word, result, reply;
   std::string order = data[0];
-  std::string key = data[1];
-  if (order.compare("set") == 0) {
+  void (*pf)(const std::vector<std::string>&, std::string* const) = mp[order];
+  pf(data, reply);
+ /* if (order.compare("set") == 0) {
+    SetCommandImpl();
     std::string value = data[2];
     s = StorageEngine::GetCurrent()->Set(key, value);
     if (s.ok()) {
@@ -76,9 +93,9 @@ int Coon::GetRequest(std::vector<std::string> data, char* buf) {
     word = EncodeFix::getWord("shutdown");
   } else {
     word = EncodeFix::getWord("Error");
-  }
-  strcpy(buf, word.c_str());
-  return word.size();
+  }*/
+  strcpy(buf, reply.c_str());
+  return reply.size();
 }
 
 void Coon::SendReply() {
