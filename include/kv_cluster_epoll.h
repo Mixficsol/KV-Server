@@ -9,16 +9,16 @@ class Cluster_Epoll {
   static void Init();
   static Cluster_Epoll* GetCurrent();
 
-  void Epoll_Init(int listenfd);
-  void Set_Init(int connfd);
-  void Set_Read(int sockfd);
-  void Set_Write(int sockfd);
-  void Set_Miss(int i);
-  bool Judge_First(int i, int listenfd);
-  bool Judge_Read(int i);
-  bool Judge_Write(int i);
-  int Get_Fd(int i);
-  int Wait_Epoll();
+  static void Epoll_Init(int listenfd);
+  static void Set_Init(int connfd);
+  static void Set_Read(int sockfd);
+  static void Set_Write(int sockfd);
+  static void Set_Miss(int i);
+  static bool Judge_First(int i, int listenfd);
+  static bool Judge_Read(int i);
+  static bool Judge_Write(int i);
+  static int Get_Fd(int i);
+  static int Wait_Epoll();
 
  protected:
  

@@ -10,12 +10,11 @@ class Coon {
   ~Coon();
   
   static void Init();
-  static Coon* GetCurrent();
 
-  std::vector<std::string> NormalFinterpreter(char* buf);
-  std::vector<std::string> Finterpreter(char* buf);
-  int GetRequest(std::vector<std::string> data, char* buf);
-  void SendReply();
+  static std::vector<std::string> NormalFinterpreter(char* buf);
+  static std::vector<std::string> Finterpreter(char* buf);
+  static int GetRequest(std::vector<std::string> data, char* buf);
+  static void SendReply();
 
  protected:
 

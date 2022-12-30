@@ -1,7 +1,6 @@
 #include "csapp.h"
 #include "kv_encode.h"
 #include "kv_io.h"
-#include "kv_leveldb.h"
 #include "kv_cluster_epoll.h"
 #include "kv_coon.h"
 #include "storage_engine.h"
@@ -56,47 +55,47 @@ int main(int argc, char **argv) {
    * 客户端和服务器之间已经建立起来了的连接的一个端点.服务器每次接受连接请求时都会被创建一次，它只存在于服务器为一个客户端服务的过程中 */
   port = atoi(argv[1]); // 端口号
   listenfd = Open_listenfd(port); // 服务器创建一个监听描述符，准备好接受连接请求
-  Cluster_Epoll::GetCurrent()->Epoll_Init(listenfd);
+  Cluster_Epoll::Epoll_Init(listenfd);
   while (1) {
-    int f = EncodeFix::GetCurrent()->JudgeShutdown(line);
+    int f = EncodeFix::JudgeShutdown(line);
     if (line[0] == 's' && line[1] == 'h') {
       break;
     }
-    sum = Cluster_Epoll::GetCurrent()->Wait_Epoll();
+    sum = Cluster_Epoll::Wait_Epoll();
     for (i = 0; i < sum; ++i) {
-      if (Cluster_Epoll::GetCurrent()->Judge_First(i, listenfd)) {
+      if (Cluster_Epoll::Judge_First(i, listenfd)) {
         connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
         if (connfd < 0) {
           exit(1);
         }
         char *str = inet_ntoa(clientaddr.sin_addr);
         LOG(INFO) << "accapt new connection from: " << str;
-        Cluster_Epoll::GetCurrent()->Set_Init(connfd);
-      } else if (Cluster_Epoll::GetCurrent()->Judge_Read(i)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
-        if ((fd = Cluster_Epoll::GetCurrent()->Get_Fd(i)) < 0) {
+        Cluster_Epoll::Set_Init(connfd);
+      } else if (Cluster_Epoll::Judge_Read(i)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
+        if ((fd = Cluster_Epoll::Get_Fd(i)) < 0) {
           continue;
         }
         n = read(fd, line, MAXLINE);
         if (n <= 0) {
           if (errno == ECONNRESET) {
             close(fd);
-            Cluster_Epoll::GetCurrent()->Set_Miss(i);
+            Cluster_Epoll::Set_Miss(i);
           } else {
             LOG(INFO) << "readline error";
           }
         } else {
-         // v = d.NormalFinterpreter(line); 
-          v = Coon::GetCurrent()->Finterpreter(line);
-          size = Coon::GetCurrent()->GetRequest(v, line);
-          Cluster_Epoll::GetCurrent()->Set_Write(fd);
+          v = Coon::NormalFinterpreter(line); 
+          //v = Coon::Finterpreter(line);
+          size = Coon::GetRequest(v, line);
+          Cluster_Epoll::Set_Write(fd);
         }
-      } else if (Cluster_Epoll::GetCurrent()->Judge_Write(i)) {  // 如果有数据发送
-        fd = Cluster_Epoll::GetCurrent()->Get_Fd(i);
+      } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
+        fd = Cluster_Epoll::Get_Fd(i);
         write(fd, line, size);
         if (line[0] == 's' && line[1] == 'h') {
           break;
         } else {
-          Cluster_Epoll::GetCurrent()->Set_Read(fd);
+          Cluster_Epoll::Set_Read(fd);
         }
       }
     }

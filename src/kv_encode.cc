@@ -1,7 +1,9 @@
-#include "../include/kv_encode.h"
-#include <glog/logging.h>
+#include "kv_encode.h"
+
 #include <string>
 #include <assert.h>
+
+#include <glog/logging.h>
 
 EncodeFix* EncodeFix::encode_fix_ = nullptr;
 

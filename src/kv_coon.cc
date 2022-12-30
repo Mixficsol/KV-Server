@@ -2,48 +2,21 @@
 #include "kv_coon.h"
 #include "kv_encode.h"
 #include "kv_io.h"
-#include "kv_leveldb.h"
 #include "storage_engine.h"
 
 #include <string>
 #include <iostream>
 #include <vector>
-#include <assert.h>
 
 using namespace leveldb;
 
-Coon* Coon::coon_ = nullptr;
-
-Coon::Coon() {
-
-}
-
-Coon::~Coon() {
-
-}
-
-void Coon::Init() {
-  if (!coon_) {
-    coon_ = new Coon();
-  }
-}
-
-Coon* Coon::GetCurrent() {
-  assert(coon_ != nullptr);
-  return coon_;
-}
-
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
-  size_t n;
-  bool flag;
   int index, cnt;
-  std::string order, key, value, word, result;
+  std::string order, key, value;
   index = 0;
-  cnt = 0;
-  flag = false;
-  cnt = EncodeFix::GetCurrent()->getCharLength(buf);
-  order = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
+  cnt = EncodeFix::getCharLength(buf);
+  order = EncodeFix::getOrder(buf, index, cnt);
   EncodeFix::GetCurrent()->orderTolower(order);
   v.push_back(order);
   index = index + order.size() + 1;
@@ -76,7 +49,6 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
 }
 
 int Coon::GetRequest(std::vector<std::string> data, char* buf) {
-  LevelDB c;
   Status s;
   std::string word, result;
   std::string order = data[0];
@@ -85,25 +57,25 @@ int Coon::GetRequest(std::vector<std::string> data, char* buf) {
     std::string value = data[2];
     s = StorageEngine::GetCurrent()->Set(key, value);
     if (s.ok()) {
-      word = EncodeFix::GetCurrent()->getWord("insert successful!");
+      word = EncodeFix::getWord("insert successful!");
     } else {
-      word = EncodeFix::GetCurrent()->getWord("insert failed");
+      word = EncodeFix::getWord("insert failed");
     }
   } else if (order.compare("get") == 0) {
     s = StorageEngine::GetCurrent()->Get(key, &result);
     if (s.ok()) {
-      word = EncodeFix::GetCurrent()->getWord(result);
+      word = EncodeFix::getWord(result);
     } else {
-      word = EncodeFix::GetCurrent()->getWord("not found");
+      word = EncodeFix::getWord("not found");
     }
   } else if (order.compare("flushall") == 0) {
-    result = c.Flushall();
+    result = StorageEngine::GetCurrent()->FlushAll();
   } else if (order.compare("exit") == 0) {
-    word = EncodeFix::GetCurrent()->getWord("exit");
+    word = EncodeFix::getWord("exit");
   } else if (order.compare("shutdown") == 0) {
-    word = EncodeFix::GetCurrent()->getWord("shutdown");
+    word = EncodeFix::getWord("shutdown");
   } else {
-    word = EncodeFix::GetCurrent()->getWord("Error");
+    word = EncodeFix::getWord("Error");
   }
   strcpy(buf, word.c_str());
   return word.size();
