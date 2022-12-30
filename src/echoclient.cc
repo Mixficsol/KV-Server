@@ -3,15 +3,26 @@
 
 #include <string>
 
+#include <glog/logging.h>
+
+static void ServerGlogInit() {
+  FLAGS_log_dir = "./log";
+  FLAGS_minloglevel = 0;
+  FLAGS_max_log_size = 1800;
+  FLAGS_logbufsecs = 0;
+  FLAGS_alsologtostderr = true;
+  ::google::InitGoogleLogging("kv_server");
+}
+
 int main(int argc, char **argv) {
   int clientfd, port, n;
   char *host, buf[MAXLINE];
   std::string str;
   rio_t rio;
-
+  ServerGlogInit();
   if (argc != 3) {
-    fprintf(stderr, "usage: %s <host> <port>\n",argv[0]);
-	  exit(0);
+    LOG(ERROR) << "usage: " << argv[0] << "<host> <port>";
+    exit(-1);
   }
   host = argv[1];
   port = atoi(argv[2]);
