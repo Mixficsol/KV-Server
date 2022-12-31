@@ -7,14 +7,18 @@
 
 using namespace leveldb;
 
-void Coomand::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
   std::string key = argv[1];
   std::string value = argv[2];
   s = StorageEngine::GetCurrent()->Set(key, value);
   if (s.ok()) {
-   // reply = EncodeFix::getWord("insert successful!");
+    *reply = EncodeFix::getWord("insert successful!");
   } else {
-  //  reply = EncodeFix::getWord("insert failed");
+    *reply = EncodeFix::getWord("insert failed");
   }
+}
+
+void Command::fun() {
+
 }

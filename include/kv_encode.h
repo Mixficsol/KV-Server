@@ -9,9 +9,6 @@ class EncodeFix {
   EncodeFix();
   ~EncodeFix();
 
-  static void Init();
-  static EncodeFix* GetCurrent();
-
   static int getCharLength(char *p); // 获取从客户端发来的字符串长度  
   static int JudgeShutdown(char *p); // 判断指令
 

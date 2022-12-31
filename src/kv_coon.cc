@@ -14,15 +14,23 @@ using namespace leveldb;
 
 struct redisCommand{
   char* name;
+  int parameter_num;
   void (*pf)(const std::vector<std::string>&, std::string* const); 
 };
 
 struct redisCommand redisCommandTable[] = {
-  {"set", Coomand::SetCommandImpl}
- // {"get", Coommand::GetCoomandImpl},
+  { (char*)"set", 3, Command::SetCommandImpl}
+ /* {"get", 2, Command::GetCommandImpl},
+  {"delete", 1, Command::DeleteCommandImpl},
+  {"flushall", 1, Command::FlushAllCommandImpl},*/
 };
 
-std::map<std::string, struct redisCommand> mp;
+std::map<std::string, struct redisCommand> mp = {
+  {"set", redisCommandTable[0]}
+ /* {"get", redisCommandTable[1]},
+  {"delete", redisCommandTable[2]},
+  {"flushall", redisCommandTalbe[3]},*/
+};
 
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
@@ -31,13 +39,13 @@ std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常�
   index = 0;
   cnt = EncodeFix::getCharLength(buf);
   order = EncodeFix::getOrder(buf, index, cnt);
-  EncodeFix::GetCurrent()->orderTolower(order);
+  EncodeFix::orderTolower(order);
   v.push_back(order);
   index = index + order.size() + 1;
-  key = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
+  key = EncodeFix::getOrder(buf, index, cnt);
   v.push_back(key);
   index = index + key.size() + 1;
-  value = EncodeFix::GetCurrent()->getOrder(buf, index, cnt);
+  value = EncodeFix::getOrder(buf, index, cnt);
   v.push_back(value);
   return v;
 }
@@ -49,27 +57,28 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
   std::string in;
   in = (std::string)buf;
   length = in.size();
-  assert(EncodeFix::GetCurrent()->Judgestring(in, cur_pos));
-  assert(EncodeFix::GetCurrent()->paramtertotal(in , cur_pos, size));
+  assert(EncodeFix::Judgestring(in, cur_pos));
+  assert(EncodeFix::paramtertotal(in , cur_pos, size));
   cnt = size;
   while (cnt--) {
-    assert(EncodeFix::GetCurrent()->FindNextSeparators(in, length, cur_pos));
-    assert(EncodeFix::GetCurrent()->JudgeOrder(in, cur_pos));
-    assert(EncodeFix::GetCurrent()->paramtertotal(in, cur_pos, size));
-    assert(EncodeFix::GetCurrent()->FindNextSeparators(in, length, cur_pos));
-    EncodeFix::GetCurrent()->Split(in, &v, cur_pos, size);
+    assert(EncodeFix::FindNextSeparators(in, length, cur_pos));
+    assert(EncodeFix::JudgeOrder(in, cur_pos));
+    assert(EncodeFix::paramtertotal(in, cur_pos, size));
+    assert(EncodeFix::FindNextSeparators(in, length, cur_pos));
+    EncodeFix::Split(in, &v, cur_pos, size);
   }
   return v;
 }
 
-int Coon::GetRequest(std::vector<std::string> data, char* buf) {
+int Coon::GetRequest(const std::vector<std::string>& data, char* buf) {
   Status s;
   std::string word, result, reply;
   std::string order = data[0];
-  mp["set"] = redisCommandTable[0];
+ // mp["set"] = redisCommandTable[0];
   struct redisCommand rediscommand = mp[order];
   void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-  Coomand::SetCommandImpl(data, &reply);
+  pd(data, &reply);
+  //Coommand::SetCommandImpl(data, &reply);
  // pd(data, &reply);
  /* if (order.compare("set") == 0) {
     SetCommandImpl();

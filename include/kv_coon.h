@@ -13,7 +13,7 @@ class Coon {
 
   static std::vector<std::string> NormalFinterpreter(char* buf);
   static std::vector<std::string> Finterpreter(char* buf);
-  static int GetRequest(std::vector<std::string> data, char* buf);
+  static int GetRequest(const std::vector<std::string>& data, char* buf);
   static void SendReply();
 
  protected:
