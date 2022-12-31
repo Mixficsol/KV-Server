@@ -6,9 +6,6 @@ class Cluster_Epoll {
   Cluster_Epoll();
   ~Cluster_Epoll();
   
-  static void Init();
-  static Cluster_Epoll* GetCurrent();
-
   static void Epoll_Init(int listenfd);
   static void Set_Init(int connfd);
   static void Set_Read(int sockfd);

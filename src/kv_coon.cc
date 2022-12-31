@@ -18,18 +18,24 @@ struct redisCommand{
   void (*pf)(const std::vector<std::string>&, std::string* const); 
 };
 
-struct redisCommand redisCommandTable[] = {
-  { (char*)"set", 3, Command::SetCommandImpl}
- /* {"get", 2, Command::GetCommandImpl},
-  {"delete", 1, Command::DeleteCommandImpl},
-  {"flushall", 1, Command::FlushAllCommandImpl},*/
+struct redisCommand redisCommandTable [] = {
+  {(char*)"set", 3, Command::SetCommandImpl},
+  {(char*)"get", 2, Command::GetCommandImpl},
+  {(char*)"delete", 1, Command::DeleteCommandImpl},
+  {(char*)"flushall", 1, Command::FlushAllCommandImpl},
+  {(char*)"exit", 1, Command::ExitCommandImpl},
+  {(char*)"shutdown", 1, Command::ShutDownCommandImpl},
+  {(char*)"error", 1, Command::ErrorCommandImpl}
 };
 
 std::map<std::string, struct redisCommand> mp = {
-  {"set", redisCommandTable[0]}
- /* {"get", redisCommandTable[1]},
+  {"set", redisCommandTable[0]},
+  {"get", redisCommandTable[1]},
   {"delete", redisCommandTable[2]},
-  {"flushall", redisCommandTalbe[3]},*/
+  {"flushall", redisCommandTable[3]},
+  {"exit", redisCommandTable[4]},
+  {"shutdown", redisCommandTable[5]},
+  {"error", redisCommandTable[6]}
 };
 
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
@@ -72,44 +78,26 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
 
 int Coon::GetRequest(const std::vector<std::string>& data, char* buf) {
   Status s;
-  std::string word, result, reply;
-  std::string order = data[0];
- // mp["set"] = redisCommandTable[0];
-  struct redisCommand rediscommand = mp[order];
-  void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-  pd(data, &reply);
-  //Coommand::SetCommandImpl(data, &reply);
- // pd(data, &reply);
- /* if (order.compare("set") == 0) {
-    SetCommandImpl();
-    std::string value = data[2];
-    s = StorageEngine::GetCurrent()->Set(key, value);
-    if (s.ok()) {
-      word = EncodeFix::getWord("insert successful!");
-    } else {
-      word = EncodeFix::getWord("insert failed");
-    }
-  } else if (order.compare("get") == 0) {
-    s = StorageEngine::GetCurrent()->Get(key, &result);
-    if (s.ok()) {
-      word = EncodeFix::getWord(result);
-    } else {
-      word = EncodeFix::getWord("not found");
-    }
-  } else if (order.compare("flushall") == 0) {
-    result = StorageEngine::GetCurrent()->FlushAll();
-  } else if (order.compare("exit") == 0) {
-    word = EncodeFix::getWord("exit");
-  } else if (order.compare("shutdown") == 0) {
-    word = EncodeFix::getWord("shutdown");
+  std::string reply, order = data[0];
+  struct redisCommand rediscommand;
+  std::map<std::string, struct redisCommand>::iterator iter;
+  iter = mp.find(order);
+  std::cout << "ORDER: " << order << std::endl;
+  if (iter != mp.end()) {
+    std::cout << "order: " << order << std::endl;
+    rediscommand = mp[order];
   } else {
-    word = EncodeFix::getWord("Error");
-  }*/
+    std::cout << "Errorr" << std::endl;
+    rediscommand = mp["error"];
+  }
+  void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+  std::cout << "rediscommand.name: " << rediscommand.name << std::endl;
+  pd(data, &reply);
   strcpy(buf, reply.c_str());
   return reply.size();
 }
 
-void Coon::SendReply() {
-
+void Coon::SendReply(const int& fd, const char line[], const int& size) {
+  write(fd, line, size);
 }
 

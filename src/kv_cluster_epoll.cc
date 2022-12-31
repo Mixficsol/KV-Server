@@ -17,25 +17,12 @@
 int sockfd, epfd, nfd;
 struct epoll_event ev, events[20];
 
-Cluster_Epoll* Cluster_Epoll::cluster_epoll_ = nullptr;
-
 Cluster_Epoll::Cluster_Epoll() {
 
 }
 
 Cluster_Epoll::~Cluster_Epoll() {
   
-}
-
-void Cluster_Epoll::Init() {
-  if (!cluster_epoll_) {
-    cluster_epoll_ = new Cluster_Epoll();
-  }
-}
-
-Cluster_Epoll* Cluster_Epoll::GetCurrent() {
-  assert(cluster_epoll_ != nullptr);
-  return cluster_epoll_;
 }
 
 void Cluster_Epoll::Epoll_Init(int listenfd) {

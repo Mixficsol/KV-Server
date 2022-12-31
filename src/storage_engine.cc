@@ -44,8 +44,8 @@ void StorageEngine::Close() {
 bool StorageEngine::FlushAll() {
   assert(is_open_);
   delete leveldb_;
-  bool flag = system("rm -rf /root/Git/KV-Server/leveldb.db");
-  if (flag) {
+  int flag = system("rm -rf /root/Git/KV-Server/leveldb.db");
+  if (flag != -1) {
     return true;
   } else {
     return false;

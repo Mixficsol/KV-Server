@@ -9,9 +9,13 @@ class Command {
    Command();
    ~Command();
 
-  static void Init();
   static void SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
-  static void fun(); 
+  static void GetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void FlushAllCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
 
   protected:
 

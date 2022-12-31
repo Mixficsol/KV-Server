@@ -57,10 +57,6 @@ int main(int argc, char **argv) {
   listenfd = Open_listenfd(port); // 服务器创建一个监听描述符，准备好接受连接请求
   Cluster_Epoll::Epoll_Init(listenfd);
   while (1) {
-    int f = EncodeFix::JudgeShutdown(line);
-    if (line[0] == 's' && line[1] == 'h') {
-      break;
-    }
     sum = Cluster_Epoll::Wait_Epoll();
     for (i = 0; i < sum; ++i) {
       if (Cluster_Epoll::Judge_First(i, listenfd)) {
@@ -85,22 +81,17 @@ int main(int argc, char **argv) {
           }
         } else {
           v = Coon::NormalFinterpreter(line); 
-          //v = Coon::Finterpreter(line);
           size = Coon::GetRequest(v, line);
           Cluster_Epoll::Set_Write(fd);
         }
       } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
         fd = Cluster_Epoll::Get_Fd(i);
-        write(fd, line, size);
-        if (line[0] == 's' && line[1] == 'h') {
-          break;
-        } else {
-          Cluster_Epoll::Set_Read(fd);
-        }
+        Coon::SendReply(fd, line, size);
+        Cluster_Epoll::Set_Read(fd);
       }
     }
   }
-
+  end:
   StorageEngine::GetCurrent()->Close();
   LOG(INFO) << "Close StorageEngine...";
   return 0;

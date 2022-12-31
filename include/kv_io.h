@@ -8,9 +8,6 @@ class IO_server {
   IO_server();
   ~IO_server();
   
-  static void Init();
-  static IO_server* GetCurrent();
-
   static void set(std::string order, std::string key, std::string value); // set函数参数指令,key,value
   static void Flushall(); // 清空leveldb数据库
 
