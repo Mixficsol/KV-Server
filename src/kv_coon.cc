@@ -12,6 +12,26 @@
 
 using namespace leveldb;
 
+Coon* Coon::coon_ = nullptr;
+
+Coon::Coon() {
+
+}
+
+Coon::~Coon() {
+
+}
+
+void Coon::Init() {
+  if (!coon_) {
+    coon_ = new Coon();
+  }
+}
+
+Coon* Coon::GetCurrent() {
+  return coon_;
+}
+
 struct redisCommand{
   char* name;
   int parameter_num;
@@ -82,16 +102,12 @@ int Coon::GetRequest(const std::vector<std::string>& data, char* buf) {
   struct redisCommand rediscommand;
   std::map<std::string, struct redisCommand>::iterator iter;
   iter = mp.find(order);
-  std::cout << "ORDER: " << order << std::endl;
   if (iter != mp.end()) {
-    std::cout << "order: " << order << std::endl;
     rediscommand = mp[order];
   } else {
-    std::cout << "Errorr" << std::endl;
     rediscommand = mp["error"];
   }
   void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-  std::cout << "rediscommand.name: " << rediscommand.name << std::endl;
   pd(data, &reply);
   strcpy(buf, reply.c_str());
   return reply.size();

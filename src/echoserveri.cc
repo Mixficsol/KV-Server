@@ -4,6 +4,7 @@
 #include "kv_cluster_epoll.h"
 #include "kv_coon.h"
 #include "storage_engine.h"
+#include "conf.h"
 
 #include <string>
 #include <iostream>
@@ -28,19 +29,14 @@ int main(int argc, char **argv) {
   std::vector<std::string> v;
   char line[MAXLINE];
   ssize_t n;
-  int listenfd, connfd, port, i, sum, fd, size; //侦听描述符，读写描述符，端口
+  int listenfd, connfd,  i, sum, fd, size; //侦听描述符，读写描述符，端口
   socklen_t clientlen; //套接字长度
   struct sockaddr_in clientaddr; //套接字结构(用于存放套字节地址)
-  bool flag;
+  bool flag = true;
 
   /* Glog init */
   ServerGlogInit();
-  if (argc != 2) {
-    LOG(ERROR) << "usage: " << argv[0] << " <port>";
-	exit(-1);
-  }
-
-  /* Initializing the storage engine */
+ /* Initializing the storage engine */
   std::string path = "./db";
   StorageEngine::Init();
   Status s = StorageEngine::GetCurrent()->Open(path);
@@ -53,10 +49,9 @@ int main(int argc, char **argv) {
 
   /*listenfd和connfd的区别:监听描述符是作为客户端连接请求的一个端点.它通常被创建一次，并存在于服务器的整个生命周期.已连接描述符是
    * 客户端和服务器之间已经建立起来了的连接的一个端点.服务器每次接受连接请求时都会被创建一次，它只存在于服务器为一个客户端服务的过程中 */
-  port = atoi(argv[1]); // 端口号
-  listenfd = Open_listenfd(port); // 服务器创建一个监听描述符，准备好接受连接请求
+  listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
   Cluster_Epoll::Epoll_Init(listenfd);
-  while (1) {
+  while (flag) {
     sum = Cluster_Epoll::Wait_Epoll();
     for (i = 0; i < sum; ++i) {
       if (Cluster_Epoll::Judge_First(i, listenfd)) {
@@ -91,7 +86,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-  end:
   StorageEngine::GetCurrent()->Close();
   LOG(INFO) << "Close StorageEngine...";
   return 0;
