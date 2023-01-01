@@ -9,14 +9,15 @@ class Coon {
   Coon();
   ~Coon();
   
-  static void Init();
+  static Coon* Init(int fd);
   static Coon* GetCurrent();
-
+  
   static std::vector<std::string> NormalFinterpreter(char* buf);
   static std::vector<std::string> Finterpreter(char* buf);
-  static int GetRequest(const std::vector<std::string>& data, char* buf);
+  static int GetRequest(char* buf);
   static void SendReply(const int& fd, const char line[], const int& size);
-
+  int Get_fd();
+  bool Get_auth();
  protected:
 
  private:
@@ -24,8 +25,6 @@ class Coon {
   bool auth;
   static Coon* coon_;
   
-  Coon(Coon& se);
-  void operator =(const Coon& se);
 };
 
 #endif // __KV_COON_H_

@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <map>
 
 #include <glog/logging.h>
 
@@ -26,14 +27,14 @@ static void ServerGlogInit() {
 }
 
 int main(int argc, char **argv) {
-  std::vector<std::string> v;
   char line[MAXLINE];
   ssize_t n;
   int listenfd, connfd,  i, sum, fd, size; //侦听描述符，读写描述符，端口
-  socklen_t clientlen; //套接字长度
   struct sockaddr_in clientaddr; //套接字结构(用于存放套字节地址)
   bool flag = true;
-
+  Coon* coon;
+  socklen_t clientlen; // 套接字长度
+  std::map<int, Coon*> m;
   /* Glog init */
   ServerGlogInit();
  /* Initializing the storage engine */
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
     LOG(ERROR) << "Open Storage engine failed: " << s.ToString();
     exit(-1);
   }
-
+  
   /*listenfd和connfd的区别:监听描述符是作为客户端连接请求的一个端点.它通常被创建一次，并存在于服务器的整个生命周期.已连接描述符是
    * 客户端和服务器之间已经建立起来了的连接的一个端点.服务器每次接受连接请求时都会被创建一次，它只存在于服务器为一个客户端服务的过程中 */
   listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
@@ -56,6 +57,9 @@ int main(int argc, char **argv) {
     for (i = 0; i < sum; ++i) {
       if (Cluster_Epoll::Judge_First(i, listenfd)) {
         connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+        /* Coon init */
+        Coon* connection = Coon::Init(connfd);
+        m[connfd] = connection;
         if (connfd < 0) {
           exit(1);
         }
@@ -75,13 +79,16 @@ int main(int argc, char **argv) {
             LOG(INFO) << "readline error";
           }
         } else {
-          v = Coon::NormalFinterpreter(line); 
-          size = Coon::GetRequest(v, line);
+          coon = m[connfd];
+          size = coon->GetRequest(line);
           Cluster_Epoll::Set_Write(fd);
         }
       } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
         fd = Cluster_Epoll::Get_Fd(i);
-        Coon::SendReply(fd, line, size);
+        coon = m[connfd];
+        std::cout << "line: " << line << std::endl;
+        std::cout << "line.size(): " << size << std::endl;
+        coon->SendReply(fd, line, size);
         Cluster_Epoll::Set_Read(fd);
       }
     }

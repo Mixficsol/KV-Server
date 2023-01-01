@@ -14,22 +14,28 @@ using namespace leveldb;
 
 Coon* Coon::coon_ = nullptr;
 
-Coon::Coon() {
-
+Coon::Coon()
+  : auth(false) {
 }
 
 Coon::~Coon() {
 
 }
 
-void Coon::Init() {
+Coon* Coon::Init(int fd) {
   if (!coon_) {
-    coon_ = new Coon();
+   coon_ = new Coon();
+   coon_->coon_fd = fd;
   }
+  return coon_;
 }
 
-Coon* Coon::GetCurrent() {
-  return coon_;
+int Coon::Get_fd() {
+  return coon_->coon_fd;
+}
+
+bool Coon::Get_auth() {
+  return coon_->auth;
 }
 
 struct redisCommand{
@@ -38,7 +44,7 @@ struct redisCommand{
   void (*pf)(const std::vector<std::string>&, std::string* const); 
 };
 
-struct redisCommand redisCommandTable [] = {
+struct redisCommand redisCommandTable [7] = {
   {(char*)"set", 3, Command::SetCommandImpl},
   {(char*)"get", 2, Command::GetCommandImpl},
   {(char*)"delete", 1, Command::DeleteCommandImpl},
@@ -48,7 +54,7 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"error", 1, Command::ErrorCommandImpl}
 };
 
-std::map<std::string, struct redisCommand> mp = {
+std::map<std::string, struct redisCommand> mp; /*= {
   {"set", redisCommandTable[0]},
   {"get", redisCommandTable[1]},
   {"delete", redisCommandTable[2]},
@@ -56,7 +62,14 @@ std::map<std::string, struct redisCommand> mp = {
   {"exit", redisCommandTable[4]},
   {"shutdown", redisCommandTable[5]},
   {"error", redisCommandTable[6]}
-};
+};*/
+
+static void MapInit() {
+  for (int i = 0; i < 7; i++) {
+    char* name = redisCommandTable[i].name;
+    mp[name] = redisCommandTable[i];
+  }
+}
 
 std::vector<std::string> Coon::NormalFinterpreter(char *buf) {  // 解析正常数据
   std::vector<std::string> v;
@@ -96,12 +109,17 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
   return v;
 }
 
-int Coon::GetRequest(const std::vector<std::string>& data, char* buf) {
+int Coon::GetRequest(char* buf) {
+  MapInit();
+  std::cout << "HE" << std::endl;
+  std::vector<std::string> data;
+  data = Coon::NormalFinterpreter(buf);
   Status s;
   std::string reply, order = data[0];
   struct redisCommand rediscommand;
   std::map<std::string, struct redisCommand>::iterator iter;
   iter = mp.find(order);
+  std::cout << "order: " << order << std::endl;
   if (iter != mp.end()) {
     rediscommand = mp[order];
   } else {
