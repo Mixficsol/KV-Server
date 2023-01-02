@@ -6,9 +6,6 @@
 
 class EncodeFix {
  public:
-  EncodeFix();
-  ~EncodeFix();
-
   static int getCharLength(char *p); // 获取从客户端发来的字符串长度  
   static int JudgeShutdown(char *p); // 判断指令
 
@@ -27,10 +24,7 @@ class EncodeFix {
  protected:
 
  private:
-  static EncodeFix* encode_fix_;
   
-  EncodeFix(EncodeFix& se);
-  void operator = (const EncodeFix& se);
 };
 
 #endif // __KV_ENCODE_H_

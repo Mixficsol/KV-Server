@@ -5,14 +5,6 @@
 
 #include <glog/logging.h>
 
-EncodeFix::EncodeFix() {
-
-}
-
-EncodeFix::~EncodeFix() {
-
-}
-
 int EncodeFix::getCharLength(char *p) { // 获取客户端传来的字符串长度
   int cnt;
   while (*p++ != '\0') {

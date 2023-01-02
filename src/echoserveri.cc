@@ -32,9 +32,9 @@ int main(int argc, char **argv) {
   int listenfd, connfd,  i, sum, fd, size; //侦听描述符，读写描述符，端口
   struct sockaddr_in clientaddr; //套接字结构(用于存放套字节地址)
   bool flag = true;
-  Coon* coon;
+  Coon coon;
   socklen_t clientlen; // 套接字长度
-  std::map<int, Coon*> m;
+  std::map<int, Coon> m;
   /* Glog init */
   ServerGlogInit();
  /* Initializing the storage engine */
@@ -56,39 +56,16 @@ int main(int argc, char **argv) {
     sum = Cluster_Epoll::Wait_Epoll();
     for (i = 0; i < sum; ++i) {
       if (Cluster_Epoll::Judge_First(i, listenfd)) {
-        connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-        /* Coon init */
-        Coon* connection = Coon::Init(connfd);
+        Coon connection = Establish(listenfd, clientaddr, clientlen);
         m[connfd] = connection;
-        if (connfd < 0) {
-          exit(1);
-        }
-        char *str = inet_ntoa(clientaddr.sin_addr);
-        LOG(INFO) << "accapt new connection from: " << str;
         Cluster_Epoll::Set_Init(connfd);
       } else if (Cluster_Epoll::Judge_Read(i)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
-        if ((fd = Cluster_Epoll::Get_Fd(i)) < 0) {
-          continue;
-        }
-        n = read(fd, line, MAXLINE);
-        if (n <= 0) {
-          if (errno == ECONNRESET) {
-            close(fd);
-            Cluster_Epoll::Set_Miss(i);
-          } else {
-            LOG(INFO) << "readline error";
-          }
-        } else {
-          coon = m[connfd];
-          size = coon->GetRequest(line);
-          Cluster_Epoll::Set_Write(fd);
-        }
-      } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
-        fd = Cluster_Epoll::Get_Fd(i);
         coon = m[connfd];
-        std::cout << "line: " << line << std::endl;
-        std::cout << "line.size(): " << size << std::endl;
-        coon->SendReply(fd, line, size);
+        coon.GetRequest(Cluster_Epoll::Get_Fd(i));
+        Cluster_Epoll::Set_Write(fd);
+      } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
+        coon = m[connfd];
+        coon.SendReply(fd);
         Cluster_Epoll::Set_Read(fd);
       }
     }

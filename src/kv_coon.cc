@@ -4,6 +4,7 @@
 #include "kv_io.h"
 #include "storage_engine.h"
 #include "kv_command.h"
+#include "csapp.h"
 
 #include <string>
 #include <iostream>
@@ -12,30 +13,44 @@
 
 using namespace leveldb;
 
-Coon* Coon::coon_ = nullptr;
+Coon coon;
 
 Coon::Coon()
-  : auth(false) {
+  : auth_(false) {
 }
 
 Coon::~Coon() {
 
 }
 
-Coon* Coon::Init(int fd) {
-  if (!coon_) {
-   coon_ = new Coon();
-   coon_->coon_fd = fd;
+Coon Coon::Establish(int listenfd, struct sockaddr_in clientaddr, socklen_t clientlen) {
+  int coonfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+  if (Fd_Exception(coonfd)) {
+    Coon connection;
+    connection.Set_fd(connfd);
+  } else {  
+    exit(1);
   }
-  return coon_;
+}
+
+bool Coon::Fd_Exception(int fd) {
+  if (connfd < 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+void Coon::Set_fd(int fd) {
+  coon.fd_ = fd;
 }
 
 int Coon::Get_fd() {
-  return coon_->coon_fd;
+  return coon.fd_;
 }
 
 bool Coon::Get_auth() {
-  return coon_->auth;
+  return coon.auth_;
 }
 
 struct redisCommand{
@@ -54,15 +69,7 @@ struct redisCommand redisCommandTable [7] = {
   {(char*)"error", 1, Command::ErrorCommandImpl}
 };
 
-std::map<std::string, struct redisCommand> mp; /*= {
-  {"set", redisCommandTable[0]},
-  {"get", redisCommandTable[1]},
-  {"delete", redisCommandTable[2]},
-  {"flushall", redisCommandTable[3]},
-  {"exit", redisCommandTable[4]},
-  {"shutdown", redisCommandTable[5]},
-  {"error", redisCommandTable[6]}
-};*/
+std::map<std::string, struct redisCommand> mp;
 
 static void MapInit() {
   for (int i = 0; i < 7; i++) {
@@ -109,26 +116,28 @@ std::vector<std::string> Coon::Finterpreter(char *buf) { // 解析序列化后�
   return v;
 }
 
-int Coon::GetRequest(char* buf) {
-  MapInit();
-  std::cout << "HE" << std::endl;
-  std::vector<std::string> data;
-  data = Coon::NormalFinterpreter(buf);
-  Status s;
-  std::string reply, order = data[0];
-  struct redisCommand rediscommand;
-  std::map<std::string, struct redisCommand>::iterator iter;
-  iter = mp.find(order);
-  std::cout << "order: " << order << std::endl;
-  if (iter != mp.end()) {
-    rediscommand = mp[order];
+void Coon::GetRequest(int fd) {
+  if (Fd_Exception(fd) {
+    n = read(fd, line, MAXLINE);
+    MapInit();
+    std::vector<std::string> data;
+    data = Coon::NormalFinterpreter(buf);
+    Status s;
+    std::string reply, order = data[0];
+    struct redisCommand rediscommand;
+    std::map<std::string, struct redisCommand>::iterator iter;
+    iter = mp.find(order);
+    if (iter != mp.end()) {
+      rediscommand = mp[order];
+    } else {
+      rediscommand = mp["error"];
+    }
+    void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+    pd(data, &reply);
+    strcpy(buf, reply.c_str());
   } else {
-    rediscommand = mp["error"];
+    continue;
   }
-  void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-  pd(data, &reply);
-  strcpy(buf, reply.c_str());
-  return reply.size();
 }
 
 void Coon::SendReply(const int& fd, const char line[], const int& size) {

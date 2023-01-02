@@ -17,14 +17,6 @@
 int sockfd, epfd, nfd;
 struct epoll_event ev, events[20];
 
-Cluster_Epoll::Cluster_Epoll() {
-
-}
-
-Cluster_Epoll::~Cluster_Epoll() {
-  
-}
-
 void Cluster_Epoll::Epoll_Init(int listenfd) {
   epfd = epoll_create(256);
   ev.data.fd = listenfd; // 设置与要处理的事件相关的文件描述符

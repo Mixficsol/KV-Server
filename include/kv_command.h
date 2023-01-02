@@ -6,9 +6,6 @@
 
 class Command {
   public:
-   Command();
-   ~Command();
-
   static void SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void GetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
@@ -20,10 +17,7 @@ class Command {
   protected:
 
   private:
-   static Command* command_;
 
-   Command(Command& se);
-   void operator =(const Command& se);
 };
 
 #endif // __KV_COMMAND_H_
