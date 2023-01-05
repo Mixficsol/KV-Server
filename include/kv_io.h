@@ -3,7 +3,7 @@
 
 #include <string>
 
-class IO_server {
+class IO {
  public: 
   static void set(std::string order, std::string key, std::string value); // set函数参数指令,key,value
   static void Flushall(); // 清空leveldb数据库

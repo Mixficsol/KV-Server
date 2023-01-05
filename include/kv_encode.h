@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-class EncodeFix {
+class Encode {
  public:
   static int getCharLength(const char *p); // 获取从客户端发来的字符串长度  
   static int JudgeShutdown(const char *p); // 判断指令

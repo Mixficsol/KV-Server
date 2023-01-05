@@ -69,15 +69,15 @@ std::vector<std::string> Conn::NormalFinterpreter() {  // 解析正常数据
   std::string order, key, value;
   index = 0;
   char* buf = read_buffer_;
-  cnt = EncodeFix::getCharLength(buf);
-  order = EncodeFix::getOrder(buf, index, cnt);
-  EncodeFix::orderTolower(order);
+  cnt = Encode::getCharLength(buf);
+  order = Encode::getOrder(buf, index, cnt);
+  Encode::orderTolower(order);
   v.push_back(order);
   index = index + order.size() + 1;
-  key = EncodeFix::getOrder(buf, index, cnt);
+  key = Encode::getOrder(buf, index, cnt);
   v.push_back(key);
   index = index + key.size() + 1;
-  value = EncodeFix::getOrder(buf, index, cnt);
+  value = Encode::getOrder(buf, index, cnt);
   v.push_back(value);
   return v;
 }
@@ -90,15 +90,15 @@ std::vector<std::string> Conn::Finterpreter() { // 解析序列化后的数据
   char* buf = read_buffer_;
   in = (std::string)buf;
   length = in.size();
-  assert(EncodeFix::Judgestring(in, cur_pos));
-  assert(EncodeFix::paramtertotal(in , cur_pos, size));
+  assert(Encode::Judgestring(in, cur_pos));
+  assert(Encode::paramtertotal(in , cur_pos, size));
   cnt = size;
   while (cnt--) {
-    assert(EncodeFix::FindNextSeparators(in, length, cur_pos));
-    assert(EncodeFix::JudgeOrder(in, cur_pos));
-    assert(EncodeFix::paramtertotal(in, cur_pos, size));
-    assert(EncodeFix::FindNextSeparators(in, length, cur_pos));
-    EncodeFix::Split(in, &v, cur_pos, size);
+    assert(Encode::FindNextSeparators(in, length, cur_pos));
+    assert(Encode::JudgeOrder(in, cur_pos));
+    assert(Encode::paramtertotal(in, cur_pos, size));
+    assert(Encode::FindNextSeparators(in, length, cur_pos));
+    Encode::Split(in, &v, cur_pos, size);
   }
   return v;
 }

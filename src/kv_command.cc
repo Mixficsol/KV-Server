@@ -13,9 +13,9 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
   std::string value = argv[2];
   s = StorageEngine::GetCurrent()->Set(key, value);
   if (s.ok()) {
-    *reply = EncodeFix::getWord("insert successful!");
+    *reply = Encode::getWord("insert successful!");
   } else {
-    *reply = EncodeFix::getWord("insert failed");
+    *reply = Encode::getWord("insert failed");
   }
 }
 
@@ -25,9 +25,9 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
   std::string result;
   s = StorageEngine::GetCurrent()->Get(key, &result);
   if (s.ok()) {
-    *reply = EncodeFix::getWord(result);
+    *reply = Encode::getWord(result);
   } else {
-    *reply = EncodeFix::getWord("not found");
+    *reply = Encode::getWord("not found");
   }
 }
 
@@ -36,9 +36,9 @@ void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::strin
   std::string key = argv[1];
   s = StorageEngine::GetCurrent()->Delete(key);
   if (s.ok()) {
-    *reply = EncodeFix::getWord("delete successful!");
+    *reply = Encode::getWord("delete successful!");
   } else {
-    *reply = EncodeFix::getWord("delete failed");
+    *reply = Encode::getWord("delete failed");
   }
 }
 
@@ -46,20 +46,20 @@ void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::str
   bool flag;
   flag = StorageEngine::GetCurrent()->FlushAll();
   if (flag) {
-    *reply = EncodeFix::getWord("clear successful!");
+    *reply = Encode::getWord("clear successful!");
   } else {
-    *reply = EncodeFix::getWord("clear failed");
+    *reply = Encode::getWord("clear failed");
   }
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = EncodeFix::getWord("bye");
+  *reply = Encode::getWord("bye");
 }
 
 void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = EncodeFix::getWord("connection closed by server");
+  *reply = Encode::getWord("connection closed by server");
 }
 
 void Command::ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = EncodeFix::getWord("Error");
+  *reply = Encode::getWord("Error");
 }

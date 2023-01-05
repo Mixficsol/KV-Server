@@ -5,11 +5,11 @@
 #include <string>
 
 
-void IO_server::Flushall() {   // 清空leveldb数据库
+void IO::Flushall() {   // 清空leveldb数据库
   int flag = system("rm -rf /root/Git/KV-Server/leveldb.db");
 }
 
-void IO_server::set(std::string order, std::string key, std::string value) { // 文件set指令
+void IO::set(std::string order, std::string key, std::string value) { // 文件set指令
   int maxpos;
   std::ofstream ofs;
   std::string sql = "";
@@ -18,14 +18,14 @@ void IO_server::set(std::string order, std::string key, std::string value) { // 
   if (maxpos == 0) {
     ofs << "begin: " << std::endl;
   }
-  sql = EncodeFix::sqlSplice(sql, order, 1);
-  sql = EncodeFix::sqlSplice(sql, key, 1);
-  sql = EncodeFix::sqlSplice(sql, value, 0);
+  sql = Encode::sqlSplice(sql, order, 1);
+  sql = Encode::sqlSplice(sql, key, 1);
+  sql = Encode::sqlSplice(sql, value, 0);
   ofs << sql << std::endl;
   ofs.close();
 }
 
-std::string IO_server::Extract(std::string templine, int &position) { //文件中提取字符串中的key，value
+std::string IO::Extract(std::string templine, int &position) { //文件中提取字符串中的key，value
   std::string word = "";
   std::string str = "";
   int size;
@@ -43,7 +43,7 @@ std::string IO_server::Extract(std::string templine, int &position) { //文件�
   return str;
 }
 
-std::string IO_server::get(std::string Key) {  // 文件get指令
+std::string IO::get(std::string Key) {  // 文件get指令
   int maxpos;
   char x;
   bool flag = false;
@@ -69,7 +69,7 @@ std::string IO_server::get(std::string Key) {  // 文件get指令
         value = Extract(templine, position);
         if (key.compare(Key) == 0 && !value.empty()) {
           flag = true;
-          value = EncodeFix::getWord(value);
+          value = Encode::getWord(value);
           break;
         }
       }
@@ -82,13 +82,13 @@ std::string IO_server::get(std::string Key) {  // 文件get指令
   if (flag) {
     return value;
   } else {
-    return EncodeFix::getWord("not found");
+    return Encode::getWord("not found");
   }
 }
 
-std::string IO_server::flushall() {  // 清空文件数据库
+std::string IO::flushall() {  // 清空文件数据库
   std::fstream f("test.txt", std::fstream::out | std::ios_base::trunc);
-  return EncodeFix::getWord("clear");
+  return Encode::getWord("clear");
 }
 
 

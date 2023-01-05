@@ -5,7 +5,7 @@
 
 #include <glog/logging.h>
 
-int EncodeFix::getCharLength(const char *p) { // 获取客户端传来的字符串长度
+int Encode::getCharLength(const char *p) { // 获取客户端传来的字符串长度
   int cnt;
   while (*p++ != '\0') {
     cnt++;
@@ -13,7 +13,7 @@ int EncodeFix::getCharLength(const char *p) { // 获取客户端传来的字符�
   return cnt;
 }
 
-int EncodeFix::JudgeShutdown(const char *p) {  // 判断关机指令
+int Encode::JudgeShutdown(const char *p) {  // 判断关机指令
   char *q = (char*)"shutdown";
   int flag = 1;
   for (int i = 0; i < 8; i++) {
@@ -25,7 +25,7 @@ int EncodeFix::JudgeShutdown(const char *p) {  // 判断关机指令
   return flag;
 }
 
-bool EncodeFix::Judgestring(const std::string& in, int& cur_pos) {
+bool Encode::Judgestring(const std::string& in, int& cur_pos) {
   if (in[cur_pos] == '*') {
     cur_pos++;
     return true;
@@ -34,7 +34,7 @@ bool EncodeFix::Judgestring(const std::string& in, int& cur_pos) {
   }
 }
 
-bool EncodeFix::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是不是$开头
+bool Encode::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是不是$开头
   if (in[cur_pos] == '$') {
     cur_pos++;
     return true;
@@ -43,7 +43,7 @@ bool EncodeFix::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是�
   }
 }
 
-bool EncodeFix::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 使字符串指令变成int类型的size 
+bool Encode::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 使字符串指令变成int类型的size 
   std::string word = "";
   std::string str = "";
   int pos = cur_pos;
@@ -60,7 +60,7 @@ bool EncodeFix::paramtertotal(const std::string& in, int& cur_pos, int& size) { 
   return true;
 }
  
-bool EncodeFix::FindNextSeparators(const std::string& in, int& length, int& cur_pos) { // 找到下一个'\n'的位置
+bool Encode::FindNextSeparators(const std::string& in, int& length, int& cur_pos) { // 找到下一个'\n'的位置
   if (cur_pos > length - 1) {
     return false;
   }
@@ -75,14 +75,14 @@ bool EncodeFix::FindNextSeparators(const std::string& in, int& length, int& cur_
   return false;
 }
 
-void EncodeFix::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
+void Encode::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
   std::string str = "";
   str.assign(in, cur_pos, size);
   out->push_back(str);
   cur_pos = cur_pos + size;
 }
 
-void EncodeFix::orderTolower(std::string order) { // 指令小写化
+void Encode::orderTolower(std::string order) { // 指令小写化
   std::string::iterator it = order.begin();
   while (it != order.end()) {
     *it = tolower(*it);
@@ -90,7 +90,7 @@ void EncodeFix::orderTolower(std::string order) { // 指令小写化
   }
 }
 
-std::string EncodeFix::getOrder(char *buf, int index, int maxsize) { // 获取字符串长度指令, key, value
+std::string Encode::getOrder(char *buf, int index, int maxsize) { // 获取字符串长度指令, key, value
   std::string order;
   for (int i = index; i < maxsize; i++) {
     if (buf[i] != '\n' && buf[i] != ' ') {
@@ -102,12 +102,12 @@ std::string EncodeFix::getOrder(char *buf, int index, int maxsize) { // 获取�
   return order;
 }
 
-std::string EncodeFix::getWord(std::string word) { // 将字符串末尾加上换行
+std::string Encode::getWord(std::string word) { // 将字符串末尾加上换行
   word.append("\n");
   return word;
 }
 
-std::string EncodeFix::sqlSplice(std::string sql, std::string word, int flag) { // // 拼接字符串
+std::string Encode::sqlSplice(std::string sql, std::string word, int flag) { // // 拼接字符串
   std::string ch = " ";
   sql.append(std::to_string(word.size()));
   sql.append(ch);  //  拼接语句类似于3 set 3 123 3 456这种结构
