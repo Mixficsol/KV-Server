@@ -5,7 +5,7 @@
 
 #include <glog/logging.h>
 
-int EncodeFix::getCharLength(char *p) { // 获取客户端传来的字符串长度
+int EncodeFix::getCharLength(const char *p) { // 获取客户端传来的字符串长度
   int cnt;
   while (*p++ != '\0') {
     cnt++;
@@ -13,7 +13,7 @@ int EncodeFix::getCharLength(char *p) { // 获取客户端传来的字符串长�
   return cnt;
 }
 
-int EncodeFix::JudgeShutdown(char *p) {  // 判断关机指令
+int EncodeFix::JudgeShutdown(const char *p) {  // 判断关机指令
   char *q = (char*)"shutdown";
   int flag = 1;
   for (int i = 0; i < 8; i++) {

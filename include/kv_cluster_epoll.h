@@ -11,7 +11,7 @@ class Cluster_Epoll {
   static bool Judge_First(int i, int listenfd);
   static bool Judge_Read(int i);
   static bool Judge_Write(int i);
-  static int Get_Fd(int i);
+  static int GetFD(int i);
   static int Wait_Epoll();
 
  protected:

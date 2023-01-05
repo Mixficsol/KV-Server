@@ -1,8 +1,9 @@
 #include "csapp.h"
 #include "kv_encode.h"
 #include "kv_io.h"
+#include "kv_exception.h"
 #include "kv_cluster_epoll.h"
-#include "kv_coon.h"
+#include "kv_conn.h"
 #include "storage_engine.h"
 #include "conf.h"
 
@@ -27,14 +28,11 @@ static void ServerGlogInit() {
 }
 
 int main(int argc, char **argv) {
-  char line[MAXLINE];
-  ssize_t n;
-  int listenfd, connfd,  i, sum, fd, size; //侦听描述符，读写描述符，端口
+  int listenfd, event_total; //侦听描述符，索取，超时时间内epoll处理时间的个数
   struct sockaddr_in clientaddr; //套接字结构(用于存放套字节地址)
   bool flag = true;
-  Coon coon;
   socklen_t clientlen; // 套接字长度
-  std::map<int, Coon> m;
+  std::map<int, Conn*> ConnectionMap;
   /* Glog init */
   ServerGlogInit();
  /* Initializing the storage engine */
@@ -53,20 +51,48 @@ int main(int argc, char **argv) {
   listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
   Cluster_Epoll::Epoll_Init(listenfd);
   while (flag) {
-    sum = Cluster_Epoll::Wait_Epoll();
-    for (i = 0; i < sum; ++i) {
-      if (Cluster_Epoll::Judge_First(i, listenfd)) {
-        Coon connection = Establish(listenfd, clientaddr, clientlen);
-        m[connfd] = connection;
-        Cluster_Epoll::Set_Init(connfd);
-      } else if (Cluster_Epoll::Judge_Read(i)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
-        coon = m[connfd];
-        coon.GetRequest(Cluster_Epoll::Get_Fd(i));
-        Cluster_Epoll::Set_Write(fd);
-      } else if (Cluster_Epoll::Judge_Write(i)) {  // 如果有数据发送
-        coon = m[connfd];
-        coon.SendReply(fd);
-        Cluster_Epoll::Set_Read(fd);
+    event_total = Cluster_Epoll::Wait_Epoll();
+    for (int index = 0; index < event_total; index++) {
+      if (Cluster_Epoll::Judge_First(index, listenfd)) {
+        Conn* conn = new Conn();
+        conn->ProcessNewConn(listenfd); // 这里的Coon以及Coon*我用的是栈变量，用完即释放，保证每个对象的安全性
+        if (conn != nullptr) {  
+          ConnectionMap[conn->GetFD()] = conn;
+          std::cout << "New Conn" << std::endl;
+          Cluster_Epoll::Set_Init(conn->GetFD());
+        } else {
+          continue;
+        }
+      } else if (Cluster_Epoll::Judge_Read(index)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
+        if (ConnectionMap.find(Cluster_Epoll::GetFD(index)) != ConnectionMap.end()) {  // 判断获取到的fd是否存在于ConnectionMap集合中
+          int fd = Cluster_Epoll::GetFD(index);
+          Conn* conn = ConnectionMap[fd];
+          if (conn != nullptr) { // 如果对象不为空
+            std::cout << "Begin Read" << std::endl;
+            conn->GetRequest();  // /*这里需要判断每次读的数据是否读满才能执行Set_Write*/
+            Cluster_Epoll::Set_Write(fd);  
+          } else {
+            ConnectionMap.erase(fd);  // 如果对象为空则删除CoonectionMap中这个fd,释放fd内存;
+            close(fd);
+          }
+        } else {
+          continue;
+        }
+      } else if (Cluster_Epoll::Judge_Write(index)) {  // 如果有数据发送
+        if (ConnectionMap.find(Cluster_Epoll::GetFD(index)) != ConnectionMap.end()) {
+          int fd = Cluster_Epoll::GetFD(index); 
+          Conn* conn = ConnectionMap[fd];
+          if (conn != nullptr) {
+            std::cout << "begin write" << std::endl;
+            conn->SendReply();
+            Cluster_Epoll::Set_Read(fd);
+          } else {
+            ConnectionMap.erase(fd);
+            close(fd);
+          }
+        } else {
+          continue;
+        }
       }
     }
   }

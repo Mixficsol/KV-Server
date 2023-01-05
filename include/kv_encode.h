@@ -6,8 +6,8 @@
 
 class EncodeFix {
  public:
-  static int getCharLength(char *p); // 获取从客户端发来的字符串长度  
-  static int JudgeShutdown(char *p); // 判断指令
+  static int getCharLength(const char *p); // 获取从客户端发来的字符串长度  
+  static int JudgeShutdown(const char *p); // 判断指令
 
   static bool Judgestring(const std::string& in, int& cur_pos); // 判断是不是以*开头的序列化语句
   static bool JudgeOrder(const std::string& in, int& cur_pos); // 判断是不是以$开头的参数语句

@@ -1,6 +1,6 @@
 SOURCE := $(wildcard src/*.cc)
-CLIENT := csapp.o echoclient.o kv_encode.o
-SERVER := csapp.o echoserveri.o kv_encode.o kv_io.o kv_cluster_epoll.o kv_coon.o kv_command.o storage_engine.o
+CLIENT := csapp.o echoclient.o
+SERVER := csapp.o echoserveri.o kv_encode.o kv_io.o kv_cluster_epoll.o kv_conn.o kv_command.o storage_engine.o kv_exception.o
 
 CXXFLAGS += -g
 INCLUDE_PATH = -I ./include \

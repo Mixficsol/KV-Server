@@ -70,7 +70,7 @@ bool Cluster_Epoll::Judge_Write(int i) {
   }
 }
 
-int Cluster_Epoll::Get_Fd(int i) {
+int Cluster_Epoll::GetFD(int i) {
   return events[i].data.fd;
 }
 
