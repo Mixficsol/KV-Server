@@ -2,6 +2,7 @@
 
 #include <string>
 #include <assert.h>
+#include <iostream>
 
 #include <glog/logging.h>
 
@@ -11,18 +12,6 @@ int Encode::getCharLength(const char *p) { // 获取客户端传来的字符串�
     cnt++;
   }
   return cnt;
-}
-
-int Encode::JudgeShutdown(const char *p) {  // 判断关机指令
-  char *q = (char*)"shutdown";
-  int flag = 1;
-  for (int i = 0; i < 8; i++) {
-    if (p[i] != q[i]) {
-      flag = 0;
-      break;
-    }
-  }
-  return flag;
 }
 
 bool Encode::Judgestring(const std::string& in, int& cur_pos) {
@@ -45,41 +34,25 @@ bool Encode::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是不�
 
 bool Encode::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 使字符串指令变成int类型的size 
   std::string word = "";
-  std::string str = "";
-  int pos = cur_pos;
-  while (in[pos] != '\\') {
-    if (in[pos] >= '0' && in[pos] <= '9') {
-      word.push_back(in[pos]);
-      pos++;
+  while (in[cur_pos] != '\r') {
+    if (in[cur_pos] >= '0' && in[cur_pos] <= '9') {
+      word.push_back(in[cur_pos]);
+      cur_pos++;
     } else {
       return false;
     }
   }
+  cur_pos += 2;  // 跳过/r/n;
   size = atoi(word.c_str());
-  cur_pos = pos;
   return true;
 }
  
-bool Encode::FindNextSeparators(const std::string& in, int& length, int& cur_pos) { // 找到下一个'\n'的位置
-  if (cur_pos > length - 1) {
-    return false;
-  }
-  int pos = cur_pos;
-  while (pos <= length - 1) {
-    if (in[pos] == 'n') {
-      cur_pos = pos + 1; // 找到'\n'的索引并且返回, 使位置往后移一位
-      return true;
-    }
-    pos++;
-  }
-  return false;
-}
-
 void Encode::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
   std::string str = "";
   str.assign(in, cur_pos, size);
+  std::cout << "str: " << str << std::endl;
   out->push_back(str);
-  cur_pos = cur_pos + size;
+  cur_pos = cur_pos + size + 2;
 }
 
 void Encode::orderTolower(std::string order) { // 指令小写化
@@ -93,7 +66,7 @@ void Encode::orderTolower(std::string order) { // 指令小写化
 std::string Encode::getOrder(char *buf, int index, int maxsize) { // 获取字符串长度指令, key, value
   std::string order;
   for (int i = index; i < maxsize; i++) {
-    if (buf[i] != '\n' && buf[i] != ' ') {
+    if (buf[i] != '\r' && buf[i] != ' ' && buf[i] != '\n') {
       order.push_back(buf[i]);
     } else {
       break;

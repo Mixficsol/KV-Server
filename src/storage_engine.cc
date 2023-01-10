@@ -1,5 +1,7 @@
 #include "storage_engine.h"
 
+#include <glog/logging.h>
+
 StorageEngine* StorageEngine::storage_engine_ = nullptr;
 
 StorageEngine::StorageEngine()

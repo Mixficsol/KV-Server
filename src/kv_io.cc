@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 
+#include <glog/logging.h>
 
 void IO::Flushall() {   // 清空leveldb数据库
   int flag = system("rm -rf /root/Git/KV-Server/leveldb.db");

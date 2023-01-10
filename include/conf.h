@@ -4,7 +4,7 @@
 #include <string>
 
 static const uint32_t PORT = 1024;
-static char* HOST = "localhost";
+static char* HOST = (char*)"127.0.0.1";
 static const std::string DB_PATH = "./db";
 static const std::string PASSWORD = "BuildTree";
 

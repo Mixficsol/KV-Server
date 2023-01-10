@@ -1,6 +1,8 @@
 #include "kv_exception.h"
 
-bool FD_Exception(int fd) {
+#include <glog/logging.h>
+
+bool FDException(int fd) {
   if (fd < 0 ) {
     return true;
   } else {
@@ -8,7 +10,7 @@ bool FD_Exception(int fd) {
   }
 }
 
-bool IO_Exception(int n) {
+bool IOException(int n) {
   if (n < 0) {
     return true;
   } else {

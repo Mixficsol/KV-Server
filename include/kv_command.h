@@ -13,7 +13,8 @@ class Command {
   static void ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
-
+  static void FirstCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static struct redisCommand lookupCommand(const std::string& cmd);
   protected:
 
   private:

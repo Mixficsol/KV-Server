@@ -6,7 +6,6 @@
 #include "kv_conn.h"
 #include "storage_engine.h"
 #include "conf.h"
-
 #include <string>
 #include <iostream>
 #include <vector>
@@ -18,6 +17,15 @@
 #define SERV_PORT 5000
 #define INFTIM 1000
 
+typedef struct redisCommand {
+  char* name;
+  int parameter_num;
+  void (*pf)(const std::vector<std::string>&, std::string* const);
+} redisCommand;
+
+extern struct redisCommand redisCommandTable [];
+extern std::map<std::string, struct redisCommand> command_map;
+
 static void ServerGlogInit() {
   FLAGS_log_dir = "./log";
   FLAGS_minloglevel = 0;
@@ -27,12 +35,20 @@ static void ServerGlogInit() {
   ::google::InitGoogleLogging("kv_server");
 }
 
+static void CommandMapInit() {
+  for (int i = 0; i < 8; i++) {
+     char* name = redisCommandTable[i].name;
+     command_map[name] = redisCommandTable[i];
+  }
+}
+
 int main(int argc, char **argv) {
   int listenfd, event_total; //侦听描述符，索取，超时时间内epoll处理时间的个数
   bool flag = true;
   std::map<int, Conn*> conn_map;
   /* Glog init */
   ServerGlogInit();
+  CommandMapInit();   // 命令Map初始化
  /* Initializing the storage engine */
   std::string path = "./db";
   StorageEngine::Init();

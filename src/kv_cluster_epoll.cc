@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <assert.h>
 
+#include <glog/logging.h>
+
 #define OPEN_MAX 100
 #define SERV_PORT 5000
 #define INFTIM 1000
