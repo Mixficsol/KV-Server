@@ -12,13 +12,31 @@
 
 using namespace leveldb;
 
-extern struct redisCommand redisCommandTable [];
-extern std::map<std::string, struct redisCommand> command_map;
 typedef struct redisCommand {
   char* name;
   int parameter_num;
   void (*pf)(const std::vector<std::string>&, std::string* const);
 } redisCommand;
+
+struct redisCommand redisCommandTable [] = {
+  {(char*)"set", 3, Command::SetCommandImpl},
+  {(char*)"get", 2, Command::GetCommandImpl},
+  {(char*)"delete", 1, Command::DeleteCommandImpl},
+  {(char*)"flushall", 1, Command::FlushAllCommandImpl},
+  {(char*)"exit", 1, Command::ExitCommandImpl},
+  {(char*)"shutdown", 1, Command::ShutDownCommandImpl},
+  {(char*)"error", 1, Command::ErrorCommandImpl},
+  {(char*)"command", 1, Command::FirstCommandImpl}
+};
+
+std::map<std::string, struct redisCommand> command_map;
+
+void Command::MapInitImpl() {
+  for (int i = 0; i < 8; i++) {
+    char* name = redisCommandTable[i].name;
+    command_map[name] = redisCommandTable[i];
+  }
+}
 
 void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
@@ -84,12 +102,13 @@ void Command::FirstCommandImpl(const std::vector<std::string>& argv, std::string
    *reply = content;
 }
 
-struct redisCommand Command::lookupCommand(const std::string& cmd) {
+struct redisCommand Command::lookupCommand(std::string& cmd) {
   struct redisCommand rediscommand;
+  Encode::orderTolower(cmd);
   std::map<std::string, struct redisCommand>::iterator iter;
   iter = command_map.find(cmd);
   if (iter != command_map.end()) {
-    rediscommand = command_map[cmd];
+    rediscommand = iter->second;
   } else {
     rediscommand = command_map["error"];
   }

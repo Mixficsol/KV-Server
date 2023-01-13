@@ -17,7 +17,6 @@ class Conn {
   void GetRequest();
   void SendReply();
   int GetFD();
-  bool JudgeReadBufferCommand();
 
  protected:
 
@@ -28,6 +27,7 @@ class Conn {
   int read_buffer_size;
   int write_buffer_size;
   bool auth_;
+  std::string reply;
 
 };
 

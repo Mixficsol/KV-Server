@@ -6,6 +6,7 @@
 
 class Command {
   public:
+  static void MapInitImpl();
   static void SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void GetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
@@ -14,7 +15,7 @@ class Command {
   static void ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void FirstCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
-  static struct redisCommand lookupCommand(const std::string& cmd);
+  static struct redisCommand lookupCommand(std::string& cmd);
   protected:
 
   private:

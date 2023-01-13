@@ -14,9 +14,8 @@ int Encode::getCharLength(const char *p) { // 获取客户端传来的字符串�
   return cnt;
 }
 
-bool Encode::Judgestring(const std::string& in, int& cur_pos) {
-  if (in[cur_pos] == '*') {
-    cur_pos++;
+bool Encode::Judgestring(const char in[]) {
+  if (in[0] == '*') {
     return true;
   } else {
     return false;
@@ -55,7 +54,7 @@ void Encode::Split(const std::string& in, std::vector<std::string>* out, int &cu
   cur_pos = cur_pos + size + 2;
 }
 
-void Encode::orderTolower(std::string order) { // 指令小写化
+void Encode::orderTolower(std::string& order) { // 指令小写化
   std::string::iterator it = order.begin();
   while (it != order.end()) {
     *it = tolower(*it);
@@ -63,7 +62,7 @@ void Encode::orderTolower(std::string order) { // 指令小写化
   }
 }
 
-std::string Encode::getOrder(char *buf, int index, int maxsize) { // 获取字符串长度指令, key, value
+std::string Encode::getOrder(char *buf, int& index, int maxsize) { // 获取字符串长度指令, key, value
   std::string order;
   for (int i = index; i < maxsize; i++) {
     if (buf[i] != '\r' && buf[i] != ' ' && buf[i] != '\n') {
@@ -72,6 +71,7 @@ std::string Encode::getOrder(char *buf, int index, int maxsize) { // 获取字�
       break;
     }
   }
+  index = index + order.size() + 1;
   return order;
 }
 
