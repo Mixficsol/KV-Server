@@ -15,6 +15,9 @@ class Command {
   static void ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void FirstCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static bool AuthCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static struct redisCommand lookupCommand(std::string& cmd);
   protected:
 

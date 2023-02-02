@@ -1,6 +1,7 @@
 #include "kv_command.h"
 #include "storage_engine.h"
 #include "kv_encode.h"
+#include "conf.h"
 
 #include <string>
 #include <vector>
@@ -26,17 +27,32 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"exit", 1, Command::ExitCommandImpl},
   {(char*)"shutdown", 1, Command::ShutDownCommandImpl},
   {(char*)"error", 1, Command::ErrorCommandImpl},
-  {(char*)"command", 1, Command::FirstCommandImpl}
+  {(char*)"command", 1, Command::FirstCommandImpl},
+  {(char*)"mset", 1, Command::MsetCommandImpl},
+  {(char*)"mget", 1, Command::MgetCommandImpl},
 };
 
 std::map<std::string, struct redisCommand> command_map;
 
 void Command::MapInitImpl() {
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 10; i++) {
     char* name = redisCommandTable[i].name;
+    
     command_map[name] = redisCommandTable[i];
   }
 }
+
+bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  std::string password = argv[1];
+  if (!password.compare(PASSWORD)) {
+    *reply = "+OK\r\n";
+    return true;
+  } else {
+    *reply = "-Password Error\r\n";
+    return false;
+  }
+}
+
 
 void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
@@ -46,7 +62,25 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
   if (s.ok()) {
     *reply = "+OK\r\n";
   } else {
-    *reply = Encode::getWord("insert failed");
+    *reply = "-Insert failed\r\n";
+  }
+}
+
+void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  Status s;
+  LOG(INFO) << "argv.size(): " << argv.size();
+  for (int i = 1; i < argv.size(); i+=2) {
+    std::string key = argv[i];
+    std::string value = argv[i + 1];
+    s = StorageEngine::GetCurrent()->Set(key, value);
+    if (!s.ok()) {
+      break;
+    }
+  }
+  if (s.ok()) {
+    *reply = "+OK\r\n";
+  } else {
+    *reply = "-Insert failed\r\n";
   }
 }
 
@@ -56,10 +90,33 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
   std::string result;
   s = StorageEngine::GetCurrent()->Get(key, &result);
   if (s.ok()) {
-    *reply = Encode::getWord(result);
+    *reply = "+" + result + "\r\n";
   } else {
-    *reply = Encode::getWord("not found");
+    *reply = "-nil\r\n";
   }
+}
+
+void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  Status s;
+  int i;
+  std::string str = "";
+  for (i = 1; i < argv.size(); i++) {
+    std::string key = argv[i];
+    std::string result;
+    s = StorageEngine::GetCurrent()->Get(key, &result);
+    LOG(INFO) << "Result: " << result;
+    if (s.ok()) {
+      str = str + std::to_string(i) + ") " + result;
+    } else {
+      str = str + std::to_string(i) + ") nil";
+    }
+    if (i == argv.size() - 1) {
+      str = str + "\r\n";
+    } else {
+      str = str + "\n";
+    }
+  }
+  *reply = "+" + str;
 }
 
 void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
@@ -67,9 +124,9 @@ void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::strin
   std::string key = argv[1];
   s = StorageEngine::GetCurrent()->Delete(key);
   if (s.ok()) {
-    *reply = Encode::getWord("delete successful!");
+    *reply = "+delete successful!\r\n";
   } else {
-    *reply = Encode::getWord("delete failed");
+    *reply = "-delete failed\r\n";
   }
 }
 
@@ -77,9 +134,9 @@ void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::str
   bool flag;
   flag = StorageEngine::GetCurrent()->FlushAll();
   if (flag) {
-    *reply = Encode::getWord("clear successful!");
+    *reply = "+OK\r\n";
   } else {
-    *reply = Encode::getWord("clear failed");
+    *reply = "-Clear Error\r\n";
   }
 }
 
@@ -92,7 +149,7 @@ void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::str
 }
 
 void Command::ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = Encode::getWord("Error");
+  *reply = "-Error\r\n";
 }
 
 void Command::FirstCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
@@ -104,7 +161,6 @@ void Command::FirstCommandImpl(const std::vector<std::string>& argv, std::string
 
 struct redisCommand Command::lookupCommand(std::string& cmd) {
   struct redisCommand rediscommand;
-  Encode::orderTolower(cmd);
   std::map<std::string, struct redisCommand>::iterator iter;
   iter = command_map.find(cmd);
   if (iter != command_map.end()) {
@@ -114,3 +170,5 @@ struct redisCommand Command::lookupCommand(std::string& cmd) {
   }
   return rediscommand;
 }
+
+

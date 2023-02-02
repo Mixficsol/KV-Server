@@ -91,9 +91,19 @@ void Conn::GetRequest() {
       } else {
         data = NormalFinterpreter();
       }
-      struct redisCommand rediscommand = Command::lookupCommand(data[0]);
-      void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-      pd(data, &reply);
+      Encode::orderTolower(data[0]);
+      std::string order = data[0];
+      LOG(INFO) <<  "Order: " << order;
+      if (!order.compare("auth")) {
+        auth_ = Command::AuthCommandImpl(data, &reply);
+      } 
+      else if (!order.compare("command") || auth_){
+        struct redisCommand rediscommand = Command::lookupCommand(data[0]);
+        void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+        pd(data, &reply);
+      } else {
+        Command::ErrorCommandImpl(data, &reply);
+      }
       strcpy(write_buffer_, reply.c_str());
       write_buffer_size = reply.size();
     } else {

@@ -68,3 +68,4 @@ Status StorageEngine::Delete(const std::string& key) {
   Status status = leveldb_->Delete(leveldb::WriteOptions(), key);
   return status;
 }
+

@@ -22,6 +22,14 @@ extern struct redisCommand rediscommand;
 extern struct redisCommand redisCommandTable [];
 extern std::map<std::string, struct redisCommand> command_map;
 
+static volatile int keepRunning = 1;
+
+void sig_handler( int sig ) {
+  if (sig == SIGINT) {
+    keepRunning = 1;
+  }
+}
+
 static void ServerGlogInit() {
   FLAGS_log_dir = "./log";
   FLAGS_minloglevel = 0;
@@ -53,7 +61,8 @@ int main(int argc, char **argv) {
    * 客户端和服务器之间已经建立起来了的连接的一个端点.服务器每次接受连接请求时都会被创建一次，它只存在于服务器为一个客户端服务的过程中 */
   listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
   ClusterEpoll::EpollInit(listenfd);
-  while (flag) {
+  while (keepRunning) {
+    signal( SIGINT, sig_handler );
     event_total = ClusterEpoll::WaitEpoll();
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
