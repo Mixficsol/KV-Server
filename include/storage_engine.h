@@ -18,6 +18,7 @@ class StorageEngine {
   void Close();
 
   bool FlushAll();
+  bool Getisopen();
   Status Set(const std::string& key, const std::string& value);
   Status Get(const std::string& key, std::string* const value);
   Status Delete(const std::string& key);

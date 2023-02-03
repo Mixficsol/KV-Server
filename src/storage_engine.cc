@@ -43,11 +43,19 @@ void StorageEngine::Close() {
   is_open_ = false;
 }
 
+bool StorageEngine::Getisopen() {
+  if (is_open_) {
+    return true;
+  }
+  return false;
+}
+
 bool StorageEngine::FlushAll() {
   assert(is_open_);
   delete leveldb_;
-  int flag = system("rm -rf /root/Git/KV-Server/leveldb.db");
+  int flag = system("rm -rf /root/Git/KV-Server/db");
   if (flag != -1) {
+    is_open_ = false;
     return true;
   } else {
     return false;

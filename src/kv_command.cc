@@ -32,12 +32,12 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"mget", 1, Command::MgetCommandImpl},
 };
 
+std::string path = "./db";
 std::map<std::string, struct redisCommand> command_map;
 
 void Command::MapInitImpl() {
   for (int i = 0; i < 10; i++) {
-    char* name = redisCommandTable[i].name;
-    
+    char* name = redisCommandTable[i].name; 
     command_map[name] = redisCommandTable[i];
   }
 }

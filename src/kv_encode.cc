@@ -49,7 +49,6 @@ bool Encode::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 
 void Encode::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
   std::string str = "";
   str.assign(in, cur_pos, size);
-  std::cout << "str: " << str << std::endl;
   out->push_back(str);
   cur_pos = cur_pos + size + 2;
 }

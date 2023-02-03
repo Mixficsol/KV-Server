@@ -103,6 +103,9 @@ int main(int argc, char **argv) {
           continue;
         }
       }
+      if (!StorageEngine::GetCurrent()->Getisopen()) {
+        StorageEngine::GetCurrent()->Open(path);
+      }
     }
   }
   StorageEngine::GetCurrent()->Close();
