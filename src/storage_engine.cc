@@ -43,13 +43,6 @@ void StorageEngine::Close() {
   is_open_ = false;
 }
 
-bool StorageEngine::Getisopen() {
-  if (is_open_) {
-    return true;
-  }
-  return false;
-}
-
 bool StorageEngine::FlushAll() {
   assert(is_open_);
   delete leveldb_;

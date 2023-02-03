@@ -36,7 +36,8 @@ std::string path = "./db";
 std::map<std::string, struct redisCommand> command_map;
 
 void Command::MapInitImpl() {
-  for (int i = 0; i < 10; i++) {
+  int ordertotal = sizeof(redisCommandTable) / sizeof(redisCommand);
+  for (int i = 0; i < ordertotal; i++) {
     char* name = redisCommandTable[i].name; 
     command_map[name] = redisCommandTable[i];
   }
@@ -91,7 +92,7 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
   if (s.ok()) {
     *reply = "+" + result + "\r\n";
   } else {
-    *reply = "-nil\r\n";
+    *reply = "$-1\r\n";
   }
 }
 
@@ -103,19 +104,13 @@ void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string*
     std::string key = argv[i];
     std::string result;
     s = StorageEngine::GetCurrent()->Get(key, &result);
-    LOG(INFO) << "Result: " << result;
     if (s.ok()) {
-      str = str + std::to_string(i) + ") " + result;
+      str = str + "$" + std::to_string(result.size()) + "\r\n" + result + "\r\n";
     } else {
-      str = str + std::to_string(i) + ") nil";
-    }
-    if (i == argv.size() - 1) {
-      str = str + "\r\n";
-    } else {
-      str = str + "\n";
+      str = str + "$-1\r\n";
     }
   }
-  *reply = "+" + str;
+  *reply = "*" + std::to_string(argv.size() - 1) + "\r\n" + str;
 }
 
 void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {

@@ -93,7 +93,6 @@ void Conn::GetRequest() {
       }
       Encode::orderTolower(data[0]);
       std::string order = data[0];
-      LOG(INFO) <<  "Order: " << order;
       if (!order.compare("auth")) {
         auth_ = Command::AuthCommandImpl(data, &reply);
       } 
@@ -101,6 +100,8 @@ void Conn::GetRequest() {
         struct redisCommand rediscommand = Command::lookupCommand(data[0]);
         void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
         pd(data, &reply);
+      } else if (!auth_) {
+        Command::AutherrorCommandImpl(data, &reply);
       } else {
         Command::ErrorCommandImpl(data, &reply);
       }
