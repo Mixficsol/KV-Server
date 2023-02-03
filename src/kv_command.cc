@@ -68,8 +68,7 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
 
 void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
-  LOG(INFO) << "argv.size(): " << argv.size();
-  for (int i = 1; i < argv.size(); i+=2) {
+  for (int i = 1; i < argv.size(); i += 2) {
     std::string key = argv[i];
     std::string value = argv[i + 1];
     s = StorageEngine::GetCurrent()->Set(key, value);
@@ -146,6 +145,10 @@ void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string*
 
 void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   *reply = Encode::getWord("connection closed by server");
+}
+
+void Command::AutherrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  *reply = "-NOAUTH Authentication required.\r\n";
 }
 
 void Command::ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {

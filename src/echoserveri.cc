@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 
+#include <signal.h>
 #include <glog/logging.h>
 
 #define OPEN_MAX 100
@@ -23,12 +24,6 @@ extern struct redisCommand redisCommandTable [];
 extern std::map<std::string, struct redisCommand> command_map;
 
 static volatile int keepRunning = 1;
-
-void sig_handler( int sig ) {
-  if (sig == SIGINT) {
-    keepRunning = 1;
-  }
-}
 
 static void ServerGlogInit() {
   FLAGS_log_dir = "./log";
@@ -44,6 +39,8 @@ int main(int argc, char **argv) {
   bool flag = true;
   std::map<int, Conn*> conn_map;
   /* Glog init */
+
+  signal(SIGPIPE, SIG_IGN);
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
  /* Initializing the storage engine */
@@ -62,7 +59,6 @@ int main(int argc, char **argv) {
   listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
   ClusterEpoll::EpollInit(listenfd);
   while (keepRunning) {
-    signal( SIGINT, sig_handler );
     event_total = ClusterEpoll::WaitEpoll();
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
@@ -102,9 +98,6 @@ int main(int argc, char **argv) {
         } else {
           continue;
         }
-      }
-      if (!StorageEngine::GetCurrent()->Getisopen()) {
-        StorageEngine::GetCurrent()->Open(path);
       }
     }
   }

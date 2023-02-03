@@ -56,6 +56,7 @@ bool StorageEngine::FlushAll() {
   int flag = system("rm -rf /root/Git/KV-Server/db");
   if (flag != -1) {
     is_open_ = false;
+    Open("./db");
     return true;
   } else {
     return false;
