@@ -1,6 +1,7 @@
 #include "storage_engine.h"
 
 #include <glog/logging.h>
+#include <vector>
 
 StorageEngine* StorageEngine::storage_engine_ = nullptr;
 
@@ -71,3 +72,10 @@ Status StorageEngine::Delete(const std::string& key) {
   return status;
 }
 
+void StorageEngine::Keys(std::vector<std::string>& argv) {
+  leveldb::Iterator* it = leveldb_->NewIterator(leveldb::ReadOptions());
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    argv.push_back(it->key().ToString());
+  }
+  delete it;
+}

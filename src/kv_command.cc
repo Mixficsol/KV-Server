@@ -2,16 +2,19 @@
 #include "storage_engine.h"
 #include "kv_encode.h"
 #include "conf.h"
+#include "kv_conn.h"
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <fstream>
 #include <iostream>
 #include <map>
 
 #include <glog/logging.h>
-
 using namespace leveldb;
+
+extern std::map<int, Conn*> conn_map;
 
 typedef struct redisCommand {
   char* name;
@@ -30,6 +33,8 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"command", 1, Command::FirstCommandImpl},
   {(char*)"mset", 1, Command::MsetCommandImpl},
   {(char*)"mget", 1, Command::MgetCommandImpl},
+  {(char*)"keys", 1, Command::KeysCommandImpl},
+  {(char*)"clientlist", 1, Command::ClientlistCommandImpl},
 };
 
 std::string path = "./db";
@@ -98,9 +103,8 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
 
 void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
-  int i;
   std::string str = "";
-  for (i = 1; i < argv.size(); i++) {
+  for (int i = 1; i < argv.size(); i++) {
     std::string key = argv[i];
     std::string result;
     s = StorageEngine::GetCurrent()->Get(key, &result);
@@ -111,6 +115,33 @@ void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string*
     }
   }
   *reply = "*" + std::to_string(argv.size() - 1) + "\r\n" + str;
+}
+
+void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  Status s;
+  std::vector<std::string> keys;
+  StorageEngine::GetCurrent()->Keys(keys);
+  std::string str = "";
+  for (int i = 0; i < keys.size(); i++) {
+    str = str + "$" + std::to_string(keys[i].size()) + "\r\n" + keys[i] + "\r\n";
+  }
+  *reply = "*" + std::to_string(keys.size()) + "\r\n" + str;
+}
+
+void Command::ClientlistCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  std::string str = "";
+  int cnt = 0;
+  for (int i = 0; i < conn_map.size(); i++) {
+    Conn* conn = conn_map[i];
+    if (conn == nullptr) {
+      continue;
+    } else {
+       cnt++;
+       std::string s = std::to_string(conn->GetFD());
+       str = str + "$" + std::to_string(s.size() + 3) + "\r\n" + "fd:" + std::to_string(conn->GetFD()) + "\r\n";
+    }
+  }
+  *reply = "*" + std::to_string(cnt) + "\r\n" + str;
 }
 
 void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {

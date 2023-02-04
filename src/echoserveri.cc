@@ -34,10 +34,11 @@ static void ServerGlogInit() {
   ::google::InitGoogleLogging("kv_server");
 }
 
+std::map<int, Conn*> conn_map;
+
 int main(int argc, char **argv) {
   int listenfd, event_total; //侦听描述符，索取，超时时间内epoll处理时间的个数
   bool flag = true;
-  std::map<int, Conn*> conn_map;
   /* Glog init */
 
   signal(SIGPIPE, SIG_IGN);
