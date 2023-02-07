@@ -63,59 +63,107 @@ std::vector<std::string> Conn::NormalFinterpreter() {  // 解析正常数据
   return normal_data;
 }
 
-std::vector<std::string> Conn::Finterpreter() { // 解析序列化后的数据
-  int cnt, cur_pos, size, length;
-  cur_pos = 1;
+std::vector<std::string> Conn::Finterpreter(int& cnt, int& cur_pos) { // 解析序列化后的数据
+  int size;
+  cur_pos = 0;
   std::vector<std::string> serialize_data;
-  std::string in;
   char* buf = read_buffer_;
-  in = (std::string)buf;
-  length = in.size();
-  assert(Encode::paramtertotal(in, cur_pos, size));
-  cnt = size;
-  while (cnt--) {
-    assert(Encode::JudgeOrder(in, cur_pos));
-    assert(Encode::paramtertotal(in, cur_pos, size));
-    Encode::Split(in, &serialize_data, cur_pos, size);
+  std::string in = (std::string)buf;
+  Encode::Find$(in, cur_pos);
+  while (cnt) {
+    if (!Encode::JudgeOrder(in, cur_pos)) {
+      break;
+    }
+    if (!Encode::paramtertotal(in, cur_pos, size)) {
+      break;
+    }
+    if (!Encode::Split(in, &serialize_data, cur_pos, size)) {
+      break;
+    } 
+    cnt--;
   }
   return serialize_data;
 }
 
+int Conn::Finterpretersize() { // 解析序列化后的数据
+  int cur_pos, size;
+  cur_pos = 1;
+  std::string in;
+  char* buf = read_buffer_;
+  in = (std::string)buf;
+  assert(Encode::paramtertotal(in, cur_pos, size));
+  return size;
+}
+
 void Conn::GetRequest() {
   if (!FDException(fd_)) {
-    int n = read(fd_, read_buffer_, MAXLINE);
-    if (!IOException(n)) {
-      std::vector<std::string> data;
-      if (Encode::Judgestring(read_buffer_)) {  // 判断是序列化语句还是普通语句
-        data = Finterpreter();
-      } else {
-        data = NormalFinterpreter();
+    int size = MAXLINE, cur_pos = 0;
+    std::vector<std::string> serialize_data;
+    int len = 0;
+   // LOG(INFO) << "-------------------------------begin-------------------------------";
+    while (size) {
+    //  LOG(INFO) << "-------cnt--------";
+      int n = read(fd_, read_buffer_ + len, MAXLINE - len);
+    //  LOG(INFO) << "n: " << n;
+   //   LOG(INFO) << "read_buffer_: " << read_buffer_;
+      if (read_buffer_[0] == '*') {
+        size = Finterpretersize();
       }
-      Encode::orderTolower(data[0]);
-      std::string order = data[0];
-      if (!order.compare("auth")) {
-        auth_ = Command::AuthCommandImpl(data, &reply);
-      } 
-      else if (!order.compare("command") || auth_){
-        struct redisCommand rediscommand = Command::lookupCommand(data[0]);
-        void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-        pd(data, &reply);
-      } else if (!auth_) {
-        Command::AutherrorCommandImpl(data, &reply);
-      } else {
-        Command::ErrorCommandImpl(data, &reply);
+      std::vector<std::string> data = Finterpreter(size, cur_pos);
+      for (int i = 0; i < data.size(); i++) {
+        serialize_data.push_back(data[i]);
       }
-      strcpy(write_buffer_, reply.c_str());
-      write_buffer_size = reply.size();
-    } else {
-    
+      len = MAXLINE - cur_pos;
+      char *new_arr = &read_buffer_[0];
+     // LOG(INFO) << "cur_pos: " << cur_pos;
+    //  LOG(INFO) << "yuansu: " << read_buffer_[cur_pos];
+    //  LOG(INFO) << "len: " << len;
+      memmove(new_arr, read_buffer_ + cur_pos, sizeof(char) * len);
+      memset(read_buffer_ + len, '\0', sizeof(read_buffer_) + len);
+    //  LOG(INFO) << "read_buffer_ after memmove: " << read_buffer_;
+   //   LOG(INFO) << "----------cnt_end-------------";
+     /* if (!IOException(n)) {
+        if (Encode::Judgestring(read_buffer_)) {  // 判断是序列化语句还是普通语句
+          data = Finterpreter();
+        } else {
+          data = NormalFinterpreter();
+        }
+      }*/
     }
-  }
+  //  LOG(INFO) << "------------------------------------------------end-----------------------------------------";
+  //  LOG(INFO) << "serialize_data: " << serialize_data[0];
+    Encode::orderTolower(serialize_data[0]);
+    std::string order = serialize_data[0];
+    if (!order.compare("auth")) {
+      auth_ = Command::AuthCommandImpl(serialize_data, &reply);
+    } 
+    else if (!order.compare("command") || auth_) {
+      struct redisCommand rediscommand = Command::lookupCommand(serialize_data[0]);
+      void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+      pd(serialize_data, &reply);
+    } 
+    else if (!auth_) {
+      Command::AutherrorCommandImpl(serialize_data, &reply);
+    } else {
+      Command::ErrorCommandImpl(serialize_data, &reply);
+    }
+  } else {
+    
+  }  
   memset(read_buffer_, '\0', sizeof(read_buffer_));
 }
 
 void Conn::SendReply() {
-  int32_t n = write(fd_, write_buffer_, write_buffer_size);
-  memset(write_buffer_, '\0', sizeof(write_buffer_));
+  int32_t nwrite = 0;
+  int32_t total_len = reply.size();
+  bool flag = true;
+  while (flag) {
+    int n = write(fd_, reply.data() + nwrite, total_len - nwrite);
+    nwrite += n;
+    if (nwrite == reply.size()) {
+      flag = false;
+    }
+  }
+  reply.clear();
 }
 

@@ -64,6 +64,7 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
   Status s;
   std::string key = argv[1];
   std::string value = argv[2];
+
   s = StorageEngine::GetCurrent()->Set(key, value);
   if (s.ok()) {
     *reply = "+OK\r\n";
@@ -199,5 +200,4 @@ struct redisCommand Command::lookupCommand(std::string& cmd) {
   }
   return rediscommand;
 }
-
 

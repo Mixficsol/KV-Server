@@ -12,7 +12,8 @@ class Conn {
   ~Conn();
   
   std::vector<std::string> NormalFinterpreter();
-  std::vector<std::string> Finterpreter();
+  std::vector<std::string> Finterpreter(int& cnt, int& cur_pos);
+  int Finterpretersize();
   void ProcessNewConn(const int& listenfd);
   void GetRequest();
   void SendReply();
@@ -22,7 +23,7 @@ class Conn {
 
  private:
   char read_buffer_[MAXLINE];
-  char write_buffer_[MAXLINE];
+  char write_buffer_[63447];
   int fd_;
   int read_buffer_size;
   int write_buffer_size;

@@ -104,5 +104,4 @@ int main(int argc, char **argv) {
   }
   StorageEngine::GetCurrent()->Close();
   LOG(INFO) << "Close StorageEngine...";
-  return 0;
 }

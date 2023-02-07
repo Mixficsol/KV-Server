@@ -22,8 +22,20 @@ bool Encode::Judgestring(const char in[]) {
   }
 }
 
+void Encode::Find$ (const std::string& in, int& cur_pos) {
+  while (in[cur_pos] != '$') {
+    cur_pos++;
+  }
+}
+
+void Encode::Back$ (const std::string& in, int& cur_pos) {
+  while (in[cur_pos] != '$') {
+    cur_pos--;
+  }
+}
+
 bool Encode::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是不是$开头
-  if (in[cur_pos] == '$') {
+  if (cur_pos < in.size() && in[cur_pos] == '$') {
     cur_pos++;
     return true;
   } else {
@@ -33,7 +45,12 @@ bool Encode::JudgeOrder(const std::string& in, int& cur_pos) { // 判断是不�
 
 bool Encode::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 使字符串指令变成int类型的size 
   std::string word = "";
-  while (in[cur_pos] != '\r') {
+  if (cur_pos >= in.size()) { // 表示读到$这里刚好读满
+    Back$(in, cur_pos);
+    return false;
+  }
+
+  while (in[cur_pos] != '\r' && cur_pos < in.size()) {
     if (in[cur_pos] >= '0' && in[cur_pos] <= '9') {
       word.push_back(in[cur_pos]);
       cur_pos++;
@@ -41,16 +58,33 @@ bool Encode::paramtertotal(const std::string& in, int& cur_pos, int& size) { // 
       return false;
     }
   }
-  cur_pos += 2;  // 跳过/r/n;
-  size = atoi(word.c_str());
-  return true;
+  if (cur_pos >= in.size()) { // 表示读数字部分时中间段读满了,ex: xxxx$123|456在3这里读满了
+    Back$(in, cur_pos);
+  }
+  if (cur_pos < in.size() && in[cur_pos] == '\r' && cur_pos + 1 < in.size() && in[cur_pos + 1] == '\n') {
+    size = atoi(word.c_str());
+    cur_pos += 2;
+    return true;
+  } else {
+    Back$(in, cur_pos); // 在数字部分刚好读满以及'\r'或'\n'这里中断读满的情况
+    return false;
+  } 
 }
  
-void Encode::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
+bool Encode::Split(const std::string& in, std::vector<std::string>* out, int &cur_pos, int& size) { // 使key, value, 指令装到vector里面
   std::string str = "";
+  if (cur_pos >= in.size()) { // 在刚开始读数据部分刚好读满
+    Back$(in, cur_pos);
+  }
   str.assign(in, cur_pos, size);
-  out->push_back(str);
-  cur_pos = cur_pos + size + 2;
+  if (cur_pos + size - 1 < in.size() && cur_pos + size < in.size() && in[cur_pos + size] == '\r' && cur_pos + size + 1 < in.size() && in[cur_pos + size + 1] == '\n') {
+    out->push_back(str);
+    cur_pos = cur_pos + size + 2;
+    return true;
+  } else {
+    Back$(in, cur_pos); // 在读数据中途读满，ex:$12\r\nqwer|asddxx在r这里读满
+    return false;
+  }
 }
 
 void Encode::orderTolower(std::string& order) { // 指令小写化
