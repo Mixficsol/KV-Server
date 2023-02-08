@@ -40,8 +40,8 @@ int main(int argc, char **argv) {
   int listenfd, event_total; //侦听描述符，索取，超时时间内epoll处理时间的个数
   bool flag = true;
   /* Glog init */
-
-  signal(SIGPIPE, SIG_IGN);
+  conn_map.clear();
+  //signal(SIGPIPE, SIG_IGN);
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
  /* Initializing the storage engine */

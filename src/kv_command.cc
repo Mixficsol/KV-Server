@@ -32,9 +32,9 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"error", 1, Command::ErrorCommandImpl},
   {(char*)"command", 1, Command::FirstCommandImpl},
   {(char*)"mset", 1, Command::MsetCommandImpl},
-  {(char*)"mget", 1, Command::MgetCommandImpl},
-  {(char*)"keys", 1, Command::KeysCommandImpl},
-  {(char*)"clientlist", 1, Command::ClientlistCommandImpl},
+  {(char*)"mget", 2, Command::MgetCommandImpl},
+  {(char*)"keys", 2, Command::KeysCommandImpl},
+  {(char*)"client", 2, Command::ClientCommandImpl},
 };
 
 std::string path = "./db";
@@ -49,6 +49,7 @@ void Command::MapInitImpl() {
 }
 
 bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear(); 
   std::string password = argv[1];
   if (!password.compare(PASSWORD)) {
     *reply = "+OK\r\n";
@@ -61,6 +62,7 @@ bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string*
 
 
 void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   Status s;
   std::string key = argv[1];
   std::string value = argv[2];
@@ -74,6 +76,7 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
 }
 
 void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   Status s;
   for (int i = 1; i < argv.size(); i += 2) {
     std::string key = argv[i];
@@ -91,6 +94,7 @@ void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string*
 }
 
 void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   Status s;
   std::string key = argv[1];
   std::string result;
@@ -103,50 +107,60 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
 }
 
 void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   Status s;
-  std::string str = "";
+  std::stringstream sstream;
   for (int i = 1; i < argv.size(); i++) {
     std::string key = argv[i];
     std::string result;
     s = StorageEngine::GetCurrent()->Get(key, &result);
     if (s.ok()) {
-      str = str + "$" + std::to_string(result.size()) + "\r\n" + result + "\r\n";
+      sstream << "$" << std::to_string(result.size()) << "\r\n" << result << "\r\n";
     } else {
-      str = str + "$-1\r\n";
+      sstream << "$-1\r\n";
     }
   }
-  *reply = "*" + std::to_string(argv.size() - 1) + "\r\n" + str;
+  *reply = "*" + std::to_string(argv.size() - 1) + "\r\n" + sstream.str();
 }
 
 void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   Status s;
-  std::vector<std::string> keys;
-  StorageEngine::GetCurrent()->Keys(keys);
-  std::string str = "";
-  for (int i = 0; i < keys.size(); i++) {
-    str = str + "$" + std::to_string(keys[i].size()) + "\r\n" + keys[i] + "\r\n";
+  if (argv[1] == "*") {
+    std::stringstream sstream;
+    std::vector<std::string> keys;
+    StorageEngine::GetCurrent()->Keys(&keys);
+    for (int i = 0; i < keys.size(); i++) {
+      sstream << "$" << std::to_string(keys[i].size()) << "\r\n" << keys[i] << "\r\n";
+    }
+    *reply = "*" + std::to_string(keys.size()) + "\r\n" + sstream.str();
   }
-  *reply = "*" + std::to_string(keys.size()) + "\r\n" + str;
 }
 
-void Command::ClientlistCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  std::string str = "";
-  int cnt = 0;
-  for (int i = 0; i < conn_map.size(); i++) {
-    Conn* conn = conn_map[i];
-    if (conn == nullptr) {
-      continue;
-    } else {
-       cnt++;
-       std::string s = std::to_string(conn->GetFD());
-       str = str + "$" + std::to_string(s.size() + 3) + "\r\n" + "fd:" + std::to_string(conn->GetFD()) + "\r\n";
+void Command::ClientCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
+  std::stringstream sstream;
+  if (argv[1] == "list") {
+    int cnt = 0;
+    std::map<int,Conn*>::iterator it = conn_map.begin();
+    while (it != conn_map.end()) {
+      Conn* conn = it->second;
+      if (conn == nullptr) {
+        continue;
+      } else {
+        cnt++;
+        std::string FD = std::to_string(conn->GetFD());
+        sstream << "$" << FD.size() << "\r\n" << FD << "\r\n"; 
+      }
+      it++;
     }
+    *reply = "*" + std::to_string(cnt) + "\r\n" + sstream.str();
   }
-  *reply = "*" + std::to_string(cnt) + "\r\n" + str;
 }
 
 void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
+  reply->clear();
   std::string key = argv[1];
   s = StorageEngine::GetCurrent()->Delete(key);
   if (s.ok()) {
@@ -158,6 +172,7 @@ void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::strin
 
 void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   bool flag;
+  reply->clear();
   flag = StorageEngine::GetCurrent()->FlushAll();
   if (flag) {
     *reply = "+OK\r\n";
@@ -167,34 +182,43 @@ void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::str
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   *reply = Encode::getWord("bye");
 }
 
-void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {  
+  reply->clear();
   *reply = Encode::getWord("connection closed by server");
 }
 
 void Command::AutherrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   *reply = "-NOAUTH Authentication required.\r\n";
 }
 
 void Command::ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  reply->clear();
   *reply = "-Error\r\n";
 }
 
 void Command::FirstCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-   std::ifstream ifs("echo.txt");
+  reply->clear(); 
+  std::ifstream ifs("echo.txt");
    std::string content( (std::istreambuf_iterator<char>(ifs) ),
                         (std::istreambuf_iterator<char>() ) );
    *reply = content;
 }
 
-struct redisCommand Command::lookupCommand(std::string& cmd) {
+struct redisCommand Command::lookupCommand(std::string& cmd, const std::vector<std::string>& argv) {
   struct redisCommand rediscommand;
   std::map<std::string, struct redisCommand>::iterator iter;
   iter = command_map.find(cmd);
   if (iter != command_map.end()) {
-    rediscommand = iter->second;
+    if (argv.size() < iter->second.parameter_num) {
+      rediscommand = command_map["error"];
+    } else {
+      rediscommand = iter->second;
+    }
   } else {
     rediscommand = command_map["error"];
   }

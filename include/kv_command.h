@@ -20,8 +20,8 @@ class Command {
   static void MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
-  static void ClientlistCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
-  static struct redisCommand lookupCommand(std::string& cmd);
+  static void ClientCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static struct redisCommand lookupCommand(std::string& cmd, const std::vector<std::string>& argv);
   protected:
 
   private:

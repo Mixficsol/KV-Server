@@ -72,10 +72,11 @@ Status StorageEngine::Delete(const std::string& key) {
   return status;
 }
 
-void StorageEngine::Keys(std::vector<std::string>& argv) {
+void StorageEngine::Keys(std::vector<std::string>* const keys) {
+  keys->clear();
   leveldb::Iterator* it = leveldb_->NewIterator(leveldb::ReadOptions());
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    argv.push_back(it->key().ToString());
+    (*keys).push_back(it->key().ToString());
   }
   delete it;
 }
