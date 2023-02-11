@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   bool flag = true;
   /* Glog init */
   conn_map.clear();
-  //signal(SIGPIPE, SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
  /* Initializing the storage engine */
@@ -76,11 +76,11 @@ int main(int argc, char **argv) {
           int fd = ClusterEpoll::GetFD(index);
           Conn* conn = conn_map[fd];
           if (conn != nullptr) { // 如果对象不为空
-            conn->GetRequest();  // /*这里需要判断每次读的数据是否读满才能执行Set_Write*/
-            ClusterEpoll::SetWrite(fd);  
+            conn->AnalyticData();
           } else {
             conn_map.erase(fd);  // 如果对象为空则删除CoonectionMap中这个fd,释放fd内存;
             close(fd);
+            delete conn; // 销毁对象
           }
         } else {
           continue;
@@ -91,10 +91,10 @@ int main(int argc, char **argv) {
           Conn* conn = conn_map[fd];
           if (conn != nullptr) {
             conn->SendReply();
-            ClusterEpoll::SetRead(fd);
           } else {
             conn_map.erase(fd);
             close(fd);
+            delete conn;
           }
         } else {
           continue;

@@ -80,3 +80,11 @@ void StorageEngine::Keys(std::vector<std::string>* const keys) {
   }
   delete it;
 }
+
+void StorageEngine::Dbsize(int* const count) {
+  leveldb::Iterator* it = leveldb_->NewIterator(leveldb::ReadOptions());
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    (*count)++;
+  }
+  delete it; 
+}

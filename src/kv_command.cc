@@ -35,6 +35,7 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"mget", 2, Command::MgetCommandImpl},
   {(char*)"keys", 2, Command::KeysCommandImpl},
   {(char*)"client", 2, Command::ClientCommandImpl},
+  {(char*)"dbsize", 1, Command::DbsizeCommandImpl},
 };
 
 std::string path = "./db";
@@ -49,7 +50,6 @@ void Command::MapInitImpl() {
 }
 
 bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear(); 
   std::string password = argv[1];
   if (!password.compare(PASSWORD)) {
     *reply = "+OK\r\n";
@@ -62,7 +62,6 @@ bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string*
 
 
 void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   Status s;
   std::string key = argv[1];
   std::string value = argv[2];
@@ -76,7 +75,6 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
 }
 
 void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   Status s;
   for (int i = 1; i < argv.size(); i += 2) {
     std::string key = argv[i];
@@ -94,7 +92,6 @@ void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string*
 }
 
 void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   Status s;
   std::string key = argv[1];
   std::string result;
@@ -107,7 +104,6 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
 }
 
 void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   Status s;
   std::stringstream sstream;
   for (int i = 1; i < argv.size(); i++) {
@@ -124,7 +120,6 @@ void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string*
 }
 
 void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   Status s;
   if (argv[1] == "*") {
     std::stringstream sstream;
@@ -138,7 +133,6 @@ void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string*
 }
 
 void Command::ClientCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   std::stringstream sstream;
   if (argv[1] == "list") {
     int cnt = 0;
@@ -150,17 +144,16 @@ void Command::ClientCommandImpl(const std::vector<std::string>& argv, std::strin
       } else {
         cnt++;
         std::string FD = std::to_string(conn->GetFD());
-        sstream << "$" << FD.size() << "\r\n" << FD << "\r\n"; 
+        sstream << "$" << FD.size() << "\n" << FD << "\n"; 
       }
       it++;
     }
-    *reply = "*" + std::to_string(cnt) + "\r\n" + sstream.str();
+    *reply = "*" + std::to_string(cnt) + "\n" + sstream.str();
   }
 }
 
 void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
-  reply->clear();
   std::string key = argv[1];
   s = StorageEngine::GetCurrent()->Delete(key);
   if (s.ok()) {
@@ -172,7 +165,6 @@ void Command::DeleteCommandImpl(const std::vector<std::string>& argv, std::strin
 
 void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   bool flag;
-  reply->clear();
   flag = StorageEngine::GetCurrent()->FlushAll();
   if (flag) {
     *reply = "+OK\r\n";
@@ -181,23 +173,25 @@ void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::str
   }
 }
 
+void Command::DbsizeCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  int count = 0;
+  StorageEngine::GetCurrent()->Dbsize(&count);
+  *reply = ":" + std::to_string(count) + "\r\n";
+}
+
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   *reply = Encode::getWord("bye");
 }
 
 void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {  
-  reply->clear();
   *reply = Encode::getWord("connection closed by server");
 }
 
 void Command::AutherrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   *reply = "-NOAUTH Authentication required.\r\n";
 }
 
 void Command::ErrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  reply->clear();
   *reply = "-Error\r\n";
 }
 
