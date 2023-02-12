@@ -49,6 +49,10 @@ void Command::MapInitImpl() {
   }
 }
 
+void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+  *reply = "+Bye\r\n";
+}
+
 bool Command::AuthCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   std::string password = argv[1];
   if (!password.compare(PASSWORD)) {
@@ -177,10 +181,6 @@ void Command::DbsizeCommandImpl(const std::vector<std::string>& argv, std::strin
   int count = 0;
   StorageEngine::GetCurrent()->Dbsize(&count);
   *reply = ":" + std::to_string(count) + "\r\n";
-}
-
-void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = Encode::getWord("bye");
 }
 
 void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {  

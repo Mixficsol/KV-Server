@@ -23,6 +23,7 @@ class StorageEngine {
   Status Get(const std::string& key, std::string* const value);
   Status Delete(const std::string& key);
   void Keys(std::vector<std::string>* const keys);
+  void Dbsize(int* const count);
  private:
   bool is_open_;
   leveldb::DB* leveldb_;

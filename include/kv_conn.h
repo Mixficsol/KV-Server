@@ -24,22 +24,24 @@ class Conn {
   void Init();
   void AnalyticData(); // 读取处理字符串
   int GetFD();
+  bool Getisconnect();
  protected:
 
  private:
   char read_buffer_[MAXLINE];
   char order; // 当前指令
   int fd_;
+  int n;
   int left; // 剩余需要读取的字符串大小
   int statement_len_; // $后的数字大小
   int instruction_len_;  // *后的数字大小
   int offset_;  // 偏移量
   bool auth_; // 认证状态
-  bool read_; // 读取状态
-  bool is_standard_; // 是否规范
+  bool is_connect_; //是否连接
+  bool is_standard_; // 是否是序列化字符串
   bool flag; // 是否退出解析
   int analysis_pos; // 解析位置
-  int read_pos;  // 读取位置
+  int read_pos;  // 读取位置3
   std::vector<std::string> serialize_data; // 解析容器
   std::string buffer;
   std::string reply; // 回复字符串

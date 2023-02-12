@@ -23,7 +23,7 @@ extern struct redisCommand rediscommand;
 extern struct redisCommand redisCommandTable [];
 extern std::map<std::string, struct redisCommand> command_map;
 
-static volatile int keepRunning = 1;
+int keepRunning = 1;
 
 static void ServerGlogInit() {
   FLAGS_log_dir = "./log";
@@ -77,6 +77,11 @@ int main(int argc, char **argv) {
           Conn* conn = conn_map[fd];
           if (conn != nullptr) { // 如果对象不为空
             conn->AnalyticData();
+            if (!conn->Getisconnect()) {
+              conn_map.erase(fd);
+              close(fd);
+              delete conn;
+            }
           } else {
             conn_map.erase(fd);  // 如果对象为空则删除CoonectionMap中这个fd,释放fd内存;
             close(fd);
@@ -91,6 +96,11 @@ int main(int argc, char **argv) {
           Conn* conn = conn_map[fd];
           if (conn != nullptr) {
             conn->SendReply();
+            if (!conn->Getisconnect()) {
+              conn_map.erase(fd);
+              close(fd);
+              delete conn;
+            }
           } else {
             conn_map.erase(fd);
             close(fd);
