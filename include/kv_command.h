@@ -22,9 +22,9 @@ class Command {
   static void KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void ClientCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static void DbsizeCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
+  static void InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply);
   static struct redisCommand lookupCommand(std::string& cmd, const std::vector<std::string>& argv);
   protected:
-
   private:
 
 };

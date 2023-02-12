@@ -167,7 +167,6 @@ void Conn::Assert() {
 
 void Conn::Parsing() {  // 指令解析
   for (read_pos = analysis_pos; read_pos < buffer.size(); read_pos++) {
-    LOG(INFO) << "index: " << read_pos;
     if (buffer[read_pos] != '\r') { 
       assert(buffer[read_pos] >= '0' && buffer[read_pos] <= '9');
     }
@@ -259,27 +258,16 @@ void Conn::GetRequest() {
     LOG(INFO) << "serialize_data: " << serialize_data[0];
     std::string Order = serialize_data[0]; 
     Encode::orderTolower(serialize_data[0]);
-  /*  if (!Order.compare("auth")) {
-      auth_ = Command::AuthCommandImpl(serialize_data, &reply);
-    }*/ 
-
-  //  if (!Order.compare("command")) {
-      struct redisCommand rediscommand = Command::lookupCommand(serialize_data[0], serialize_data);
-      void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
-      pd(serialize_data, &reply);
-      if (serialize_data[0] == "exit") {
-        is_connect_ = false;
-      } else if (serialize_data[0] == "shutdown") {
-        keepRunning = 0;
-      }
-  //  } 
- /*   else if (!auth_) {
-      Command::AutherrorCommandImpl(serialize_data, &reply);
-    }*/// else {
-    //  Command::ErrorCommandImpl(serialize_data, &reply);
-   // }
+    struct redisCommand rediscommand = Command::lookupCommand(serialize_data[0], serialize_data);
+    void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
+    pd(serialize_data, &reply);
+    if (serialize_data[0] == "exit") {
+      is_connect_ = false;
+    } else if (serialize_data[0] == "shutdown") {
+      keepRunning = 0;
+    }
   } else {
-    
+    is_connect_ = false;
   }
   Init();
   ClusterEpoll::SetWrite(fd_);

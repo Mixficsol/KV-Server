@@ -36,6 +36,7 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"keys", 2, Command::KeysCommandImpl},
   {(char*)"client", 2, Command::ClientCommandImpl},
   {(char*)"dbsize", 1, Command::DbsizeCommandImpl},
+  {(char*)"info", 1, Command::InfoCommandImpl},
 };
 
 std::string path = "./db";
@@ -47,6 +48,10 @@ void Command::MapInitImpl() {
     char* name = redisCommandTable[i].name; 
     command_map[name] = redisCommandTable[i];
   }
+}
+
+void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
+
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
@@ -148,11 +153,11 @@ void Command::ClientCommandImpl(const std::vector<std::string>& argv, std::strin
       } else {
         cnt++;
         std::string FD = std::to_string(conn->GetFD());
-        sstream << "$" << FD.size() << "\n" << FD << "\n"; 
+        sstream << "$" << FD.size() << "\r\n" << FD << "\r\n"; 
       }
       it++;
     }
-    *reply = "*" + std::to_string(cnt) + "\n" + sstream.str();
+    *reply = "*" + std::to_string(cnt) + "\r\n" + sstream.str();
   }
 }
 

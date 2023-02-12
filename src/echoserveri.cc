@@ -38,10 +38,8 @@ std::map<int, Conn*> conn_map;
 
 int main(int argc, char **argv) {
   int listenfd, event_total; //侦听描述符，索取，超时时间内epoll处理时间的个数
-  bool flag = true;
   /* Glog init */
   conn_map.clear();
-  signal(SIGPIPE, SIG_IGN);
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
  /* Initializing the storage engine */
@@ -68,9 +66,7 @@ int main(int argc, char **argv) {
           conn->ProcessNewConn(listenfd); // 这里的Coon以及Coon*我用的是栈变量，用完即释放，保证每个对象的安全性
           conn_map[conn->GetFD()] = conn;
           ClusterEpoll::SetInit(conn->GetFD());
-        } else {
-          continue;
-        }
+        } 
       } else if (ClusterEpoll::JudgeRead(index)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
         if (conn_map.find(ClusterEpoll::GetFD(index)) != conn_map.end()) {  // 判断获取到的fd是否存在于ConnectionMap集合中
           int fd = ClusterEpoll::GetFD(index);
@@ -88,7 +84,7 @@ int main(int argc, char **argv) {
             delete conn; // 销毁对象
           }
         } else {
-          continue;
+          close(ClusterEpoll::GetFD(index));
         }
       } else if (ClusterEpoll::JudgeWrite(index)) {  // 如果有数据发送
         if (conn_map.find(ClusterEpoll::GetFD(index)) != conn_map.end()) {
@@ -107,7 +103,7 @@ int main(int argc, char **argv) {
             delete conn;
           }
         } else {
-          continue;
+          close(ClusterEpoll::GetFD(index));
         }
       }
     }
