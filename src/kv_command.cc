@@ -2,6 +2,7 @@
 #include "storage_engine.h"
 #include "kv_encode.h"
 #include "conf.h"
+#include "define.h"
 #include "kv_conn.h"
 
 #include <string>
@@ -44,14 +45,15 @@ std::map<std::string, struct redisCommand> command_map;
 
 void Command::MapInitImpl() {
   int ordertotal = sizeof(redisCommandTable) / sizeof(redisCommand);
+  char* name;
   for (int i = 0; i < ordertotal; i++) {
-    char* name = redisCommandTable[i].name; 
+    name = redisCommandTable[i].name; 
     command_map[name] = redisCommandTable[i];
   }
 }
 
 void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-
+  *reply = "+Serverredis_version:\r\n";
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
@@ -85,9 +87,10 @@ void Command::SetCommandImpl(const std::vector<std::string>& argv, std::string* 
 
 void Command::MsetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
+  std::string key, value;
   for (int i = 1; i < argv.size(); i += 2) {
-    std::string key = argv[i];
-    std::string value = argv[i + 1];
+    key = argv[i];
+    value = argv[i + 1];
     s = StorageEngine::GetCurrent()->Set(key, value);
     if (!s.ok()) {
       break;
@@ -115,17 +118,19 @@ void Command::GetCommandImpl(const std::vector<std::string>& argv, std::string* 
 void Command::MgetCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   Status s;
   std::stringstream sstream;
+  sstream << "*" << std::to_string(argv.size() - 1) << "\r\n";
+  std::string key, result;
   for (int i = 1; i < argv.size(); i++) {
-    std::string key = argv[i];
-    std::string result;
+    key = argv[i];
     s = StorageEngine::GetCurrent()->Get(key, &result);
     if (s.ok()) {
       sstream << "$" << std::to_string(result.size()) << "\r\n" << result << "\r\n";
     } else {
       sstream << "$-1\r\n";
     }
+    result.clear();
   }
-  *reply = "*" + std::to_string(argv.size() - 1) + "\r\n" + sstream.str();
+  *reply = sstream.str();
 }
 
 void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
@@ -134,30 +139,34 @@ void Command::KeysCommandImpl(const std::vector<std::string>& argv, std::string*
     std::stringstream sstream;
     std::vector<std::string> keys;
     StorageEngine::GetCurrent()->Keys(&keys);
+    sstream << "*" << std::to_string(keys.size()) << "\r\n";
     for (int i = 0; i < keys.size(); i++) {
       sstream << "$" << std::to_string(keys[i].size()) << "\r\n" << keys[i] << "\r\n";
     }
-    *reply = "*" + std::to_string(keys.size()) + "\r\n" + sstream.str();
+    *reply = sstream.str();
   }
 }
 
 void Command::ClientCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   std::stringstream sstream;
+  std::string FD;
+  Conn* conn = nullptr;
   if (argv[1] == "list") {
     int cnt = 0;
     std::map<int,Conn*>::iterator it = conn_map.begin();
     while (it != conn_map.end()) {
-      Conn* conn = it->second;
+      conn = it->second;
       if (conn == nullptr) {
         continue;
       } else {
         cnt++;
-        std::string FD = std::to_string(conn->GetFD());
+        FD = std::to_string(conn->GetFD());
         sstream << "$" << FD.size() << "\r\n" << FD << "\r\n"; 
       }
       it++;
     }
-    *reply = "*" + std::to_string(cnt) + "\r\n" + sstream.str();
+    sstream << "*" << std::to_string(cnt) << "\r\n";
+    *reply = sstream.str();
   }
 }
 
@@ -184,12 +193,14 @@ void Command::FlushAllCommandImpl(const std::vector<std::string>& argv, std::str
 
 void Command::DbsizeCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   int count = 0;
+  std::stringstream sstream;
   StorageEngine::GetCurrent()->Dbsize(&count);
-  *reply = ":" + std::to_string(count) + "\r\n";
+  sstream << ":" << std::to_string(count) << "\r\n";
+  *reply = sstream.str();
 }
 
 void Command::ShutDownCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {  
-  *reply = Encode::getWord("connection closed by server");
+  *reply = "+connection closed by server\r\n";
 }
 
 void Command::AutherrorCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {

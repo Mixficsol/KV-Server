@@ -1,5 +1,5 @@
 #include "storage_engine.h"
-
+#include "conf.h"
 #include <glog/logging.h>
 #include <vector>
 
@@ -47,10 +47,10 @@ void StorageEngine::Close() {
 bool StorageEngine::FlushAll() {
   assert(is_open_);
   delete leveldb_;
-  int flag = system("rm -rf /root/Git/KV-Server/db");
+  int flag = system(DB_Delete_Sentence);
   if (flag != -1) {
     is_open_ = false;
-    Open("./db");
+    Open(DB_PATH);
     return true;
   } else {
     return false;
@@ -83,6 +83,7 @@ void StorageEngine::Keys(std::vector<std::string>* const keys) {
 
 void StorageEngine::Dbsize(int* const count) {
   leveldb::Iterator* it = leveldb_->NewIterator(leveldb::ReadOptions());
+  *count = 0;
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     (*count)++;
   }

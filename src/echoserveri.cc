@@ -26,7 +26,7 @@ extern std::map<std::string, struct redisCommand> command_map;
 int keepRunning = 1;
 
 static void ServerGlogInit() {
-  FLAGS_log_dir = "./log";
+  FLAGS_log_dir = LOG_PATH;
   FLAGS_minloglevel = 0;
   FLAGS_max_log_size = 1800;
   FLAGS_logbufsecs = 0;
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
  /* Initializing the storage engine */
-  std::string path = "./db";
+  std::string path = DB_PATH;
   StorageEngine::Init();
   Status s = StorageEngine::GetCurrent()->Open(path);
   if (s.ok()) {
@@ -62,26 +62,20 @@ int main(int argc, char **argv) {
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
         Conn* conn = new Conn();
-        if (conn != nullptr) { 
-          conn->ProcessNewConn(listenfd); // 这里的Coon以及Coon*我用的是栈变量，用完即释放，保证每个对象的安全性
-          conn_map[conn->GetFD()] = conn;
-          ClusterEpoll::SetInit(conn->GetFD());
-        } 
+        assert(conn != nullptr);
+        conn->ProcessNewConn(listenfd); // 这里的Coon以及Coon*我用的是栈变量，用完即释放，保证每个对象的安全性
+        conn_map[conn->GetFD()] = conn;
+        ClusterEpoll::SetInit(conn->GetFD());
       } else if (ClusterEpoll::JudgeRead(index)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
         if (conn_map.find(ClusterEpoll::GetFD(index)) != conn_map.end()) {  // 判断获取到的fd是否存在于ConnectionMap集合中
           int fd = ClusterEpoll::GetFD(index);
           Conn* conn = conn_map[fd];
-          if (conn != nullptr) { // 如果对象不为空
-            conn->AnalyticData();
-            if (!conn->Getisconnect()) {
-              conn_map.erase(fd);
-              close(fd);
-              delete conn;
-            }
-          } else {
-            conn_map.erase(fd);  // 如果对象为空则删除CoonectionMap中这个fd,释放fd内存;
+          assert(conn != nullptr);
+          conn->AnalyticData();
+          if (!conn->IsConnect()) {
+            conn_map.erase(fd);
             close(fd);
-            delete conn; // 销毁对象
+            delete conn;
           }
         } else {
           close(ClusterEpoll::GetFD(index));
@@ -90,14 +84,9 @@ int main(int argc, char **argv) {
         if (conn_map.find(ClusterEpoll::GetFD(index)) != conn_map.end()) {
           int fd = ClusterEpoll::GetFD(index); 
           Conn* conn = conn_map[fd];
-          if (conn != nullptr) {
-            conn->SendReply();
-            if (!conn->Getisconnect()) {
-              conn_map.erase(fd);
-              close(fd);
-              delete conn;
-            }
-          } else {
+          assert(conn != nullptr);
+          conn->SendReply();
+          if (!conn->IsConnect()) {
             conn_map.erase(fd);
             close(fd);
             delete conn;
