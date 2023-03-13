@@ -10,6 +10,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 #include <map>
 
 #include <glog/logging.h>
@@ -36,8 +37,8 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"mget", 2, Command::MgetCommandImpl},
   {(char*)"keys", 2, Command::KeysCommandImpl},
   {(char*)"client", 2, Command::ClientCommandImpl},
+  {(char*)"information", 1, Command::InfoCommandImpl},
   {(char*)"dbsize", 1, Command::DbsizeCommandImpl},
-  {(char*)"info", 1, Command::InfoCommandImpl},
 };
 
 std::string path = "./db";
@@ -53,8 +54,41 @@ void Command::MapInitImpl() {
 }
 
 void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = "+Serverredis_version:\r\ntotal_input_bytes_: 123\r\ntotal_output_bytes_: 456\r\n";
-
+  std::stringstream sstream;
+  int connect_clients = command_map.size();
+  time_t now = time(0);
+  time_t server_begin_time, server_current_time;
+  tm Tm;
+  char* current_time = ctime(&now);
+  
+  strptime(current_time, "%Y-%m-%d %H:%M:%S", &Tm);
+  LOG(INFO) << current_time;
+  LOG(INFO) << ServerStats::GetCurrent()->GetBeginTime();
+  server_current_time = mktime(&Tm);
+  int total_connections_received = ServerStats::GetCurrent()->GetTotalConnectionsReceived();
+  int total_commands_processed = ServerStats::GetCurrent()->GetTotalCommandsProcessed();
+  int total_net_input_bytes = ServerStats::GetCurrent()->GetInputBytes();
+  int total_net_output_bytes = ServerStats::GetCurrent()->GetOutputBytes();
+  int qps = ServerStats::GetCurrent()->GetQps();
+  int instantaneous_input_kbps;
+  int instantaneous_output_kbps;
+  sstream << "+# Server" << "\n" 
+    << "redis_version: " << Version << "\n"
+    << "Multiplexing_Api: " << Multiplexing_Api << "\n"
+    << "tcp_port: " << HOST << ":" << PORT << "\n"
+    << "uptime_in_seconds: " << "\n"
+    << "uptime_in_day: " << "\n\n"
+    << "# Clients\n"
+    << "connected_clients: " << connect_clients << "\n\n"
+    << "# States" << "\n" 
+    << "total_connections_received: " << total_connections_received << "\n"
+    << "total_commands_processed: " << total_commands_processed << "\n" 
+    << "instantaneous_ops_pre_sec: " << qps << "\n" 
+    << "total_net_input_bytes: " << total_net_input_bytes << "\n" 
+    << "total_net_output_bytes: " << total_net_output_bytes << "\n" 
+    << "instantaneous_input_kbps: " << "\n" 
+    << "instantaneous_output_kbps: " << "\r\n";
+  *reply = sstream.str();
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {

@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
   std::string path = DB_PATH;
   StorageEngine::Init();
   ServerStats::Init();
+  ServerStats::GetCurrent()->InitTime();
   Status s = StorageEngine::GetCurrent()->Open(path);
   if (s.ok()) {
     LOG(INFO) << "Open Storage engine success...";
@@ -61,14 +62,14 @@ int main(int argc, char **argv) {
   ClusterEpoll::EpollInit(listenfd);
   while (keepRunning) {
     event_total = ClusterEpoll::WaitEpoll();
-    ServerStats::GetCurrent()->GetQps();
-   // std::cout << "event_total: " << event_total << std::endl;
+    ServerStats::GetCurrent()->CalculateQps();
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
         Conn* conn = new Conn();
         assert(conn != nullptr);
         conn->ProcessNewConn(listenfd); // 这里的Coon以及Coon*我用的是栈变量，用完即释放，保证每个对象的安全性
         conn_map[conn->GetFD()] = conn;
+        ServerStats::GetCurrent()->AddTotalConnectionsReceived();
         ClusterEpoll::SetInit(conn->GetFD());
       } else if (ClusterEpoll::JudgeRead(index)) {   // 如果是已经连接的用户, 并且收到数据,那么进行读入
         if (conn_map.find(ClusterEpoll::GetFD(index)) != conn_map.end()) {  // 判断获取到的fd是否存在于ConnectionMap集合中
