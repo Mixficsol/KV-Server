@@ -77,7 +77,7 @@ int ClusterEpoll::GetFD(int i) {
 }
 
 int ClusterEpoll::WaitEpoll() {
-  return epoll_wait(epfd, events, 20, 500);
+  return epoll_wait(epfd, events, 20, 100);
 }
 
 

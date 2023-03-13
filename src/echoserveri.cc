@@ -7,6 +7,7 @@
 #include "storage_engine.h"
 #include "kv_command.h"
 #include "conf.h"
+#include "define.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
  /* Initializing the storage engine */
   std::string path = DB_PATH;
   StorageEngine::Init();
+  Define::Init();
   Status s = StorageEngine::GetCurrent()->Open(path);
   if (s.ok()) {
     LOG(INFO) << "Open Storage engine success...";
@@ -52,13 +54,16 @@ int main(int argc, char **argv) {
     LOG(ERROR) << "Open Storage engine failed: " << s.ToString();
     exit(-1);
   }
-  
+   
   /*listenfd和connfd的区别:监听描述符是作为客户端连接请求的一个端点.它通常被创建一次，并存在于服务器的整个生命周期.已连接描述符是
    * 客户端和服务器之间已经建立起来了的连接的一个端点.服务器每次接受连接请求时都会被创建一次，它只存在于服务器为一个客户端服务的过程中 */
   listenfd = Open_listenfd(PORT); // 服务器创建一个监听描述符，准备好接受连接请求
   ClusterEpoll::EpollInit(listenfd);
+  Define def;
   while (keepRunning) {
     event_total = ClusterEpoll::WaitEpoll();
+    Define::GetCurrent()->GetQps();
+   // std::cout << "event_total: " << event_total << std::endl;
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
         Conn* conn = new Conn();

@@ -53,7 +53,8 @@ void Command::MapInitImpl() {
 }
 
 void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
-  *reply = "+Serverredis_version:\r\n";
+  *reply = "+Serverredis_version:\r\ntotal_input_bytes_: 123\r\ntotal_output_bytes_: 456\r\n";
+
 }
 
 void Command::ExitCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
