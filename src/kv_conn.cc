@@ -5,7 +5,7 @@
 #include "storage_engine.h"
 #include "kv_command.h"
 #include "csapp.h"
-#include "define.h"
+#include "ServerStats.h"
 #include "kv_exception.h"
 #include "kv_cluster_epoll.h"
 #include <cassert>
@@ -242,7 +242,7 @@ void Conn::Finterpreter() { // 解析序列化后的数据
 void Conn::AnalyticData() {
   memset(read_buffer_ + offset_, '\0', MAXLINE - offset_);
   actual_read_ = read(fd_, read_buffer_ + offset_, MAXLINE - offset_);
-  Define::GetCurrent()->AddInputBytes(actual_read_);
+  ServerStats::GetCurrent()->AddInputBytes(actual_read_);
   if (actual_read_ == 0) { // 客户端断连
     is_connect_ = false;
     return;
@@ -279,7 +279,7 @@ void Conn::GetRequest() {
   } else {
     is_connect_ = false;
   }
-  Define::GetCurrent()->AddCommandProcessed();
+  ServerStats::GetCurrent()->AddCommandProcessed();
   Reply_.append(reply_);
   reply_.clear();
 //  LOG(INFO) << "Reply_size: " << Reply_.size();
@@ -293,7 +293,7 @@ void Conn::SendReply() {
   int32_t total_len = Reply_.size();
   while (true) {
     int n = write(fd_, Reply_.data() + nwrite, total_len - nwrite);
-    Define::GetCurrent()->AddOutputBytes(n);
+    ServerStats::GetCurrent()->AddOutputBytes(n);
     if (n == 0) { /* 暂时写不进去 */
       return;
     } else if (n == -1) {

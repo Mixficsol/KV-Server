@@ -58,6 +58,9 @@ bool StorageEngine::FlushAll() {
 }
 
 Status StorageEngine::Set(const std::string& key, const std::string& value) {
+ /* leveldb::WriteOptions write_options;
+  write_options.sync = true;
+  db->Put(write_options, ...);*/
   Status status = leveldb_->Put(leveldb::WriteOptions(), key, value);
   return status;
 }

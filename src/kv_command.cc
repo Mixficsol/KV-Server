@@ -2,7 +2,7 @@
 #include "storage_engine.h"
 #include "kv_encode.h"
 #include "conf.h"
-#include "define.h"
+#include "ServerStats.h"
 #include "kv_conn.h"
 
 #include <string>
