@@ -12,7 +12,7 @@
 #include <iostream>
 #include <ctime>
 #include <map>
-
+#include <time.h>
 #include <glog/logging.h>
 using namespace leveldb;
 
@@ -55,29 +55,23 @@ void Command::MapInitImpl() {
 
 void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string* const reply) {
   std::stringstream sstream;
-  int connect_clients = command_map.size();
-  time_t now = time(0);
-  time_t server_begin_time, server_current_time;
-  tm Tm;
-  char* current_time = ctime(&now);
-  
-  strptime(current_time, "%Y-%m-%d %H:%M:%S", &Tm);
-  LOG(INFO) << current_time;
-  LOG(INFO) << ServerStats::GetCurrent()->GetBeginTime();
-  server_current_time = mktime(&Tm);
+  int connect_clients  = ServerStats::GetCurrent()->GetConnectClient();
+  int current_seconds = time(NULL);
+  int uptime_in_seconds = (current_seconds - ServerStats::GetCurrent()->GetServerBeginTime());
+  int uptime_in_day = ((uptime_in_seconds) / 86400);
   int total_connections_received = ServerStats::GetCurrent()->GetTotalConnectionsReceived();
   int total_commands_processed = ServerStats::GetCurrent()->GetTotalCommandsProcessed();
   int total_net_input_bytes = ServerStats::GetCurrent()->GetInputBytes();
   int total_net_output_bytes = ServerStats::GetCurrent()->GetOutputBytes();
   int qps = ServerStats::GetCurrent()->GetQps();
-  int instantaneous_input_kbps;
-  int instantaneous_output_kbps;
+  int instantaneous_input_kbps = ServerStats::GetCurrent()->GetInputKbps();
+  int instantaneous_output_kbps = ServerStats::GetCurrent()->GetOutputKbps();
   sstream << "+# Server" << "\n" 
     << "redis_version: " << Version << "\n"
     << "Multiplexing_Api: " << Multiplexing_Api << "\n"
-    << "tcp_port: " << HOST << ":" << PORT << "\n"
-    << "uptime_in_seconds: " << "\n"
-    << "uptime_in_day: " << "\n\n"
+    << "tcp_port: " << PORT << "\n"
+    << "uptime_in_seconds: " << uptime_in_seconds << "\n"
+    << "uptime_in_day: " << uptime_in_day << "\n\n"
     << "# Clients\n"
     << "connected_clients: " << connect_clients << "\n\n"
     << "# States" << "\n" 
@@ -86,8 +80,8 @@ void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string*
     << "instantaneous_ops_pre_sec: " << qps << "\n" 
     << "total_net_input_bytes: " << total_net_input_bytes << "\n" 
     << "total_net_output_bytes: " << total_net_output_bytes << "\n" 
-    << "instantaneous_input_kbps: " << "\n" 
-    << "instantaneous_output_kbps: " << "\r\n";
+    << "instantaneous_input_kbps: " << instantaneous_input_kbps << "MB/s\n" 
+    << "instantaneous_output_kbps: " << instantaneous_output_kbps << "KB/s\r\n";
   *reply = sstream.str();
 }
 

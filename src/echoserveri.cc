@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
   std::string path = DB_PATH;
   StorageEngine::Init();
   ServerStats::Init();
-  ServerStats::GetCurrent()->InitTime();
   Status s = StorageEngine::GetCurrent()->Open(path);
   if (s.ok()) {
     LOG(INFO) << "Open Storage engine success...";
@@ -63,6 +62,9 @@ int main(int argc, char **argv) {
   while (keepRunning) {
     event_total = ClusterEpoll::WaitEpoll();
     ServerStats::GetCurrent()->CalculateQps();
+    ServerStats::GetCurrent()->CalculateInputKbps();
+    ServerStats::GetCurrent()->CalculateOutputKbps();
+    ServerStats::GetCurrent()->SetConnectClient(conn_map.size());
     for (int index = 0; index < event_total; index++) {
       if (ClusterEpoll::JudgeFirst(index, listenfd)) {
         Conn* conn = new Conn();
