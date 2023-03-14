@@ -294,7 +294,6 @@ void Conn::SendReply() {
   while (true) {
     int n = write(fd_, Reply_.data() + nwrite, total_len - nwrite);
     ServerStats::GetCurrent()->AddOutputBytes(n);
-    LOG(INFO) << "n: " << n;
     if (n == 0) { /* 暂时写不进去 */
       return;
     } else if (n == -1) {
