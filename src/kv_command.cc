@@ -37,7 +37,7 @@ struct redisCommand redisCommandTable [] = {
   {(char*)"mget", 2, Command::MgetCommandImpl},
   {(char*)"keys", 2, Command::KeysCommandImpl},
   {(char*)"client", 2, Command::ClientCommandImpl},
-  {(char*)"information", 1, Command::InfoCommandImpl},
+  {(char*)"infor", 1, Command::InfoCommandImpl},
   {(char*)"dbsize", 1, Command::DbsizeCommandImpl},
 };
 
@@ -67,7 +67,7 @@ void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string*
   int instantaneous_input_kbps = ServerStats::GetCurrent()->GetInputKbps();
   int instantaneous_output_kbps = ServerStats::GetCurrent()->GetOutputKbps();
   sstream << "+# Server" << "\n" 
-    << "redis_version: " << Version << "\n"
+    << "Myserver_version: " << Version << "\n"
     << "Multiplexing_Api: " << Multiplexing_Api << "\n"
     << "tcp_port: " << PORT << "\n"
     << "uptime_in_seconds: " << uptime_in_seconds << "\n"

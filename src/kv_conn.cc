@@ -84,11 +84,11 @@ void Conn::Splice() {   // 将数字字符串转为整形数字
   buffer_ = read_buffer_; 
   if (state_ == kBluk) {
     bluk_length_ = atoi(buffer_.substr(analysis_pos_, read_pos_ - analysis_pos_).c_str());  // *后的数字字符串转换为整形数字
-   // LOG(INFO) << "bluk_length_: " << bluk_length_;
+    //LOG(INFO) << "bluk_length_: " << bluk_length_;
     Assert(); // 处理'\r','\n'的情况
   } else if (state_ == kMultiBluk) {
     left_ = multibluk_length_ = atoi(buffer_.substr(analysis_pos_, read_pos_ - analysis_pos_).c_str());  // $后的数字字符串转换为整形数字
-   // LOG(INFO) << "multibluk_length_: " << multibluk_length_;
+    //LOG(INFO) << "multibluk_length_: " << multibluk_length_;
     Assert();
     if (!is_end_parsing_) {
       Add();
@@ -98,8 +98,8 @@ void Conn::Splice() {   // 将数字字符串转为整形数字
 
 void Conn::Add() {
   buffer_ = read_buffer_;
-//  LOG(INFO) << "left: " << left_ << " read_pos_: " << read_pos_;
-//  LOG(INFO) << "pre_data: " << data_;
+  //LOG(INFO) << "left: " << left_ << " read_pos_: " << read_pos_;
+  //LOG(INFO) << "pre_data: " << data_;
   int num = std::min(left_, read_buffer_size_ - analysis_pos_);
   data_.append(buffer_, analysis_pos_, num);
   if (num == 0) {
@@ -107,7 +107,7 @@ void Conn::Add() {
   } else if (num == left_ || left_ == read_buffer_size_ - analysis_pos_) {
     left_ = 0;
     argv_.push_back(data_);
-  //  LOG(INFO) << "data_: " << data_;
+    //LOG(INFO) << "data_: " << data_;
     data_.clear();
     read_pos_ = read_pos_ + num;
   } else if (num == read_buffer_size_ - analysis_pos_) {
@@ -120,13 +120,13 @@ void Conn::Add() {
 void Conn::Assert() {
   if (read_pos_ == read_buffer_size_) {
     is_end_parsing_ = true;
-   // LOG(INFO) << "exit: 1";
+    //LOG(INFO) << "exit: 1";
     return;
   }
   assert(read_buffer_[read_pos_] == '\r');
   if (read_pos_ == read_buffer_size_ - 1) {
     is_end_parsing_ = true;
- //   LOG(INFO) << "exit: 2";
+    //LOG(INFO) << "exit: 2";
     return;
   } 
   assert(read_buffer_[read_pos_ + 1] == '\n');  
@@ -139,28 +139,29 @@ void Conn::Assert() {
     state_ = kMultiBluk;
   }  
   if (bluk_length_ == 0 && left_ == 0) {
+
     if (read_pos_ + 1 == read_buffer_size_ - 1 || read_buffer_[read_pos_ + 2] != '*') {
       is_end_read_ = true;
       is_end_parsing_ = true;
       read_pos_ = read_buffer_size_;
-   //   LOG(INFO) << "enter 1";
+      //LOG(INFO) << "enter 1";
     } else if (read_pos_ + 2 == read_buffer_size_ - 1) {
       is_end_parsing_ = true;
       read_pos_ = read_buffer_size_;
-     // LOG(INFO) << "enter 2";
+      //LOG(INFO) << "enter 2";
     } else {
       read_pos_ += 3;
     }
     GetRequest();
     Reset();
- //   LOG(INFO) << "exit 3";
-  //  LOG(INFO) << "is_end_parsing_ " << is_end_parsing_;
+    //LOG(INFO) << "exit 3";
+    //LOG(INFO) << "is_end_parsing_ " << is_end_parsing_;
     return;
   }
   if (read_pos_ + 1 == read_buffer_size_ - 1) {
     is_end_parsing_ = true;
     read_pos_ = read_buffer_size_;
-   // LOG(INFO) << "exit 4";
+    //LOG(INFO) << "exit 4";
     return;
   }
   if (read_buffer_[read_pos_ + 2] == '$' && state_ == kMultiBluk) {
@@ -170,44 +171,44 @@ void Conn::Assert() {
     } else {
       read_pos_ += 3;
     }
-//    LOG(INFO) << "exit 5";
+    //LOG(INFO) << "exit 5";
   } else {
     read_pos_ += 2;
     analysis_pos_ = read_pos_;
-  //  LOG(INFO) << "exit 6";
+    //LOG(INFO) << "exit 6";
   }
 }
 
 void Conn::Parsing() {  // 指令解析
   char* pos = strchr(read_buffer_, '\r');
   read_pos_ = pos - read_buffer_;
- // LOG(INFO) << "NUM: " << read_buffer_[0];
+  //LOG(INFO) << "NUM: " << read_buffer_[0];
   if (pos == NULL || read_pos_ >= read_buffer_size_) {
     is_end_parsing_ = true;
     read_pos_ = analysis_pos_;
   } else {
-   // LOG(INFO) << "Read_pos_num: " << read_buffer_[read_pos_];
-   // LOG(INFO) << "read_pos: " << read_pos_;
+    //LOG(INFO) << "Read_pos_num: " << read_buffer_[read_pos_];
+    //LOG(INFO) << "read_pos: " << read_pos_;
     Splice();
   }
 }
 
 void Conn::Memmove() {
-//  LOG(INFO) << "read_pos_num: " << read_buffer_[read_pos_] << "  read_pos_num - 1: "  << read_buffer_[read_pos_ - 1];
- // LOG(INFO) << "read_pos: " << read_pos_ << "  read_buffer_size_: " << read_buffer_size_;
+  //LOG(INFO) << "read_pos_num: " << read_buffer_[read_pos_] << "  read_pos_num - 1: "  << read_buffer_[read_pos_ - 1];
+  //LOG(INFO) << "read_pos: " << read_pos_ << "  read_buffer_size_: " << read_buffer_size_;
   offset_ = read_buffer_size_ - read_pos_; // 计算menmove的值
   memmove(read_buffer_, read_buffer_ + read_pos_, sizeof(char) * offset_);  // [0][1][2][3][4] -> [2][3][4][x][x]
   read_buffer_size_ = offset_;
   analysis_pos_ = read_pos_ = 0;
-//  LOG(INFO) << "offset_: " << offset_ << "  read_buffer_size_: " << read_buffer_size_ << "strlen(read): " << strlen(read_buffer_);
+  //LOG(INFO) << "offset_: " << offset_ << "  read_buffer_size_: " << read_buffer_size_ << "strlen(read): " << strlen(read_buffer_);
 }
 
 void Conn::Finterpreter() { // 解析序列化后的数据
-//  LOG(INFO) << "read_buffer_: " << read_buffer_;
- // LOG(INFO) << "read_buffer_size_: " << strlen(read_buffer_);
+  //LOG(INFO) << "after_read_buffer_: " << read_buffer_;
+  //LOG(INFO) << "after_read_buffer_size_: " << strlen(read_buffer_);
   is_end_parsing_ = false; 
   read_buffer_size_ = actual_read_ + offset_;  // read_buffer的实际大小
- // LOG(INFO) << "Order: " << state_;
+  //LOG(INFO) << "Order: " << state_;
   if (read_buffer_[read_pos_] == '*' && bluk_length_ == -1) {  // 对序列化句子的第一次判断
     state_ = kBluk;
     analysis_pos_ = read_pos_ = 1;
@@ -219,35 +220,31 @@ void Conn::Finterpreter() { // 解析序列化后的数据
     Memmove();
   } else if (read_buffer_[read_pos_] == '\r' || read_buffer_[read_pos_] == '\n')  {
     Assert();
-   // LOG(INFO) << "order: " << state_;
-   // LOG(INFO) << "State_ : " << state_;
+    
     if (state_ != kBluk) {
       Add();
     }
     Memmove();
   } 
-//  LOG(INFO) << "State_ : " << state_;
+  //LOG(INFO) << "State_ : " << state_;
   while (!is_end_parsing_) {
     Parsing();
     Memmove();
-  //  LOG(INFO) << "is_end_parsing_: " << is_end_parsing_;
+    //LOG(INFO) << "is_end_parsing_: " << is_end_parsing_;
   }
-  if (!is_end_read_) {
-  //  LOG(INFO) << "this";
-    ClusterEpoll::SetRead(fd_); // 设置可读事件
-  }
-
 }
 
 void Conn::AnalyticData() {
   memset(read_buffer_ + offset_, '\0', MAXLINE - offset_);
   actual_read_ = read(fd_, read_buffer_ + offset_, MAXLINE - offset_);
+  //LOG(INFO) << "actual_read: " << actual_read_;
   ServerStats::GetCurrent()->AddInputBytes(actual_read_);
   if (actual_read_ == 0) { // 客户端断连
+    //is_end_read_ = true;
+    //ClusterEpoll::SetWrite(fd_);
     is_connect_ = false;
     return;
   }
- // LOG(INFO) << "actual_read: " << actual_read_;
   Finterpreter(); // 序列化解析函数,每次有新的东西读进来一定要执行解析函数
 }
 
@@ -265,9 +262,10 @@ void Conn::GetRequest() {
     std::vector<std::string>::iterator iter = argv_.begin();
     std::string Order = argv_[0]; 
     Encode::orderTolower(argv_[0]);
-   // LOG(INFO) << "-----------------------------------";
-   // LOG(INFO) << "Order: " << argv_[0];
-   // LOG(INFO) << "is_end_read_: " << is_end_read_;
+    //LOG(INFO) << "-----------------------------------";
+    //LOG(INFO) << "Order: " << argv_[0];
+    //LOG(INFO) << "key: " << argv_[1];
+    //LOG(INFO) << "is_end_read_: " << is_end_read_;
     struct redisCommand rediscommand = Command::lookupCommand(argv_[0], argv_);
     void (*pd)(const std::vector<std::string>&, std::string* const) = rediscommand.pf;
     pd(argv_, &reply_);
@@ -282,7 +280,7 @@ void Conn::GetRequest() {
   ServerStats::GetCurrent()->AddCommandProcessed();
   Reply_.append(reply_);
   reply_.clear();
-//  LOG(INFO) << "Reply_size: " << Reply_.size();
+  //LOG(INFO) << "Reply_size: " << Reply_.size();
   if (is_end_read_) {
     ClusterEpoll::SetWrite(fd_);
   }

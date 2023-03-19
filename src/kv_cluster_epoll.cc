@@ -22,25 +22,25 @@ struct epoll_event ev, events[20];
 void ClusterEpoll::EpollInit(int listenfd) {
   epfd = epoll_create(256);
   ev.data.fd = listenfd; // 设置与要处理的事件相关的文件描述符
-  ev.events = EPOLLIN|EPOLLET; // 设置要处理的事件类型
+  ev.events = EPOLLIN; // 设置要处理的事件类型
   epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &ev); // 注册epoll事件
 }
 
 void ClusterEpoll::SetInit(int connfd) {
   ev.data.fd = connfd; // 设置用于读操作的文件描述符
-  ev.events = EPOLLIN|EPOLLET; //设置用于注册的读操作事件
+  ev.events = EPOLLIN; //设置用于注册的读操作事件
   epoll_ctl(epfd, EPOLL_CTL_ADD, connfd, &ev); // 注册ev
 }
 
 void ClusterEpoll::SetRead(int sockfd) {
   ev.data.fd = sockfd; // 设置用于读操作的文件描述符
-  ev.events = EPOLLIN|EPOLLET; // 修改sockfd上要处理的事件为EPOLIN
+  ev.events = EPOLLIN; // 修改sockfd上要处理的事件为EPOLIN
   epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
 }
 
 void ClusterEpoll::SetWrite(int sockfd) {
   ev.data.fd = sockfd; // 设置用于写操作的文件描述符
-  ev.events = EPOLLOUT|EPOLLET; //设置sockfd上要处理的事件为EPOLLOT
+  ev.events = EPOLLOUT; //设置sockfd上要处理的事件为EPOLLOT
   epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
 }
 
