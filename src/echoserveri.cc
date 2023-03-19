@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   conn_map.clear();
   ServerGlogInit();
   Command::MapInitImpl();   // 命令Map初始化
- /* Initializing the storage engine */
+  /* Initializing the storage engine */
   std::string path = DB_PATH;
   StorageEngine::Init();
   ServerStats::Init();
