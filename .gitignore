@@ -3,3 +3,4 @@ leveldb.db/*
 tags
 log/*
 db/*
+test/*
