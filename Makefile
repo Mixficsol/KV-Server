@@ -10,6 +10,6 @@ all:
 	g++ -o client $(CXXFLAGS) $(CLIENT) -lpthread -lleveldb -lboost_system -lboost_filesystem -lglog
 	g++ -o server $(CXXFLAGS) $(SERVER) -lpthread -lleveldb -lboost_system -lboost_filesystem -lglog
 
-clear:
+clean:
 	rm *.o
 	rm -r client server

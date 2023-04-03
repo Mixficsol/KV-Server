@@ -66,15 +66,15 @@ void Command::InfoCommandImpl(const std::vector<std::string>& argv, std::string*
   int qps = ServerStats::GetCurrent()->GetQps();
   int instantaneous_input_kbps = ServerStats::GetCurrent()->GetInputKbps();
   int instantaneous_output_kbps = ServerStats::GetCurrent()->GetOutputKbps();
-  sstream << "+# Server" << "\n" 
+  sstream << "+# Server\n" 
     << "Myserver_version: " << Version << "\n"
     << "Multiplexing_Api: " << Multiplexing_Api << "\n"
     << "tcp_port: " << PORT << "\n"
     << "uptime_in_seconds: " << uptime_in_seconds << "\n"
     << "uptime_in_day: " << uptime_in_day << "\n\n"
-    << "# Clients\n"
+    << "# Clients \n"
     << "connected_clients: " << connect_clients << "\n\n"
-    << "# States" << "\n" 
+    << "# States\n" 
     << "total_connections_received: " << total_connections_received << "\n"
     << "total_commands_processed: " << total_commands_processed << "\n" 
     << "instantaneous_ops_pre_sec: " << qps << "\n" 
