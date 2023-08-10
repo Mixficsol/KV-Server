@@ -1,6 +1,6 @@
 # KV-Server
 
-## KV存储服务
+## KV 存储服务
 
 KV-Server 是⼀个底层使⽤ LevelDB 作为存储引擎，上层基于 Epoll 进⾏封装的⾼性能服务器，⽬前⾃⼰实现了如下
 ⼀些功能
